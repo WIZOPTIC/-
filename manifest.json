@@ -1,7 +1,7 @@
 {
   "name": "판매관리",
   "short_name": "판매관리",
-  "start_url": "/",
+  "start_url": "/-/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1D9E75",
