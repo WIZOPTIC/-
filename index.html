@@ -1191,7 +1191,7 @@ window.printPickingList = function() {
   pickPrintDiv.innerHTML = `
     <div id="pickPrintToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
       <button onclick="window.closePickPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
-      <span style="font-size:15px;font-weight:700;">출고리스트 미리보기</span>
+      <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${window.pickData.date}_${window.pickData.client.name}</span></span>
       <button onclick="window.printWithTitle('출고리스트_'+window.pickData.date+'_'+window.pickData.client.name)" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">🖨️ 인쇄</button>
     </div>
     <div id="pickPrintBody" style="padding-top:56px;background:white;font-family:'맑은 고딕','Malgun Gothic',Arial,sans-serif;">
@@ -1378,7 +1378,7 @@ window.printStatement = function() {
   printDiv.innerHTML = `
     <div id="printToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
       <button onclick="window.closePrintPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
-      <span style="font-size:15px;font-weight:700;">거래명세표 미리보기</span>
+      <span style="font-size:13px;font-weight:700;text-align:center;">거래명세표<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${window.stmtData.date}_${window.stmtData.client.name}</span></span>
       <button onclick="window.printWithTitle('거래명세표_'+window.stmtData.date+'_'+window.stmtData.client.name)" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">🖨️ 인쇄</button>
     </div>
     <div id="stmtPrintBody" style="padding-top:56px;background:white;font-family:'맑은 고딕','Malgun Gothic',Arial,sans-serif;transform-origin:top left;">
@@ -1951,8 +1951,16 @@ window.uploadProductExcel = async function(input) {
 window.printWithTitle = function(title) {
   const orig = document.title;
   document.title = title;
-  window.print();
-  setTimeout(()=>{ document.title = orig; }, 1000);
+  // 충분한 딜레이 후 인쇄 - 모바일에서 title 캐싱 방지
+  const doPrint = () => {
+    window.print();
+    window.addEventListener('afterprint', function restoreTitle(){
+      document.title = orig;
+      window.removeEventListener('afterprint', restoreTitle);
+    });
+  };
+  // 두 번의 렌더 사이클 + 500ms 대기
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(doPrint, 500)));
 };
 
 window.closeModal=e=>{if(e.target.classList.contains('modal-overlay'))closeModalDirect();};
