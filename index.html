@@ -1603,17 +1603,17 @@ window.renderARDetail = function(clientId) {
     '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">총 반품</span><span style="color:#e53935;">-'+fmt(tReturn)+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;border-top:1px solid #c8f0e0;padding-top:6px;"><span style="color:#888;">총 입금</span><span style="color:#1976D2;font-weight:600;">-'+fmt(tPay)+'</span></div>'+
     '</div>'+
-    '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:15px;">'+
-    '<tr style="background:#f5f5f5;"><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;">날짜</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#1D9E75;">매출</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#1976D2;">입금</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#e53935;">잔금</th></tr>'+
-    '<tr><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;color:#888;font-size:14px;text-align:center;">이월</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:700;color:'+(prevBal<0?'#1976D2':'inherit')+';">'+( prevBal<0?'-'+fmt(Math.abs(prevBal)):fmt(prevBal))+'</td></tr>'+
+    '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'+
+    '<tr style="background:#f5f5f5;"><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;">날짜</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#1D9E75;">매출</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#1976D2;">입금</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#e53935;">잔금</th></tr>'+
+    '<tr><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;color:#888;font-size:13px;text-align:center;">이월</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:700;color:'+(prevBal<0?'#1976D2':'inherit')+';">'+( prevBal<0?'-'+fmt(Math.abs(prevBal)):fmt(prevBal))+'</td></tr>'+
     rows.map(r=>`<tr style="cursor:pointer;" onclick="showARTxnDetail('${r.id}','${clientId}')">`+
-      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">'+
-        '<div style="font-size:15px;font-weight:600;">'+r.date.slice(2)+'</div>'+
-        '<div style="font-size:12px;color:#aaa;margin-top:2px;">'+(r.type==='payment'?'입금':r.type==='return'?'반품':'매출')+'</div>'+
+      '<td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;">'+
+        '<div style="font-size:14px;font-weight:600;">'+r.date.slice(2)+'</div>'+
+        '<div style="font-size:11px;color:#aaa;margin-top:2px;">'+(r.type==='payment'?'입금':r.type==='return'?'반품':'매출')+'</div>'+
       '</td>'+
-      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:600;color:'+(r.sale>0?'#1D9E75':r.sale<0?'#e53935':'#bbb')+';">'+(r.sale>0?fmt(r.sale):r.sale<0?'-'+fmt(Math.abs(r.sale)):'-')+'</td>'+
-      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:600;color:#1976D2;">'+(r.pay>0?fmt(r.pay):'-')+'</td>'+
-      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:700;color:'+(r.balance<0?'#1976D2':'#e53935')+';">'+( r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance))+'</td>'+
+      '<td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:'+(r.sale>0?'#1D9E75':r.sale<0?'#e53935':'#bbb')+';">'+(r.sale>0?fmt(r.sale):r.sale<0?'-'+fmt(Math.abs(r.sale)):'-')+'</td>'+
+      '<td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;">'+(r.pay>0?fmt(r.pay):'-')+'</td>'+
+      '<td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:700;color:'+(r.balance<0?'#1976D2':'#e53935')+';">'+( r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance))+'</td>'+
       '</tr>').join('')+
     '</table></div>'+
     '<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:16px;font-weight:700;border-top:2px solid #f0f0f0;margin-top:4px;">'+
