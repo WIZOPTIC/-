@@ -58,15 +58,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .info-box{background:#f0faf6;border-left:4px solid #1D9E75;padding:12px 14px;border-radius:0 8px 8px 0;margin:0 12px 10px;font-size:14px;color:#0F6E56;}
 
 /* 거래유형 선택 */
-.type-selector{display:flex;gap:8px;padding:0 12px 10px;}
-.type-btn{flex:1;padding:13px 6px;border-radius:10px;border:2px solid #e0e0e0;background:white;font-size:14px;font-weight:600;cursor:pointer;text-align:center;color:#888;}
+.type-selector{display:flex;gap:8px;padding:8px 12px 10px;}
+.type-btn{flex:1;padding:14px 6px;border-radius:12px;border:2px solid #e8e8e8;background:white;font-size:15px;font-weight:600;cursor:pointer;text-align:center;color:#999;}
 .type-sale{border-color:#1D9E75;background:#f0faf6;color:#1D9E75;}
 .type-payment{border-color:#1976D2;background:#e3f2fd;color:#1976D2;}
 .type-return{border-color:#e53935;background:#ffebee;color:#e53935;}
 
 /* 바코드 스캔 */
 .barcode-wrap{padding:0 12px 10px;}
-.barcode-input{width:100%;padding:14px 16px;border:2px solid #1D9E75;border-radius:10px;font-size:16px;background:white;outline:none;}
+.barcode-input{width:100%;padding:15px 16px 15px 46px;border:2px solid #1D9E75;border-radius:12px;font-size:15px;background:white;outline:none;box-shadow:0 2px 8px rgba(29,158,117,0.12);}
 
 /* 장바구니 */
 .cart-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0f0;gap:8px;background:white;}
@@ -259,7 +259,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="home-card red" onclick="showPage('ar')">
       <div class="home-card-icon">💸</div>
-      <div class="home-card-label">미수금현황</div>
+      <div class="home-card-label">미수금</div>
       <div class="home-card-sub">잔액 조회</div>
     </div>
     <div class="home-card purple" onclick="showPage('stats')">
@@ -292,31 +292,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="page-title">판매등록</span>
   </div>
   <div class="page-body" style="padding-bottom:20px;">
-    <!-- 날짜 + 거래처 (고정 선택 영역) -->
-    <div style="background:white;margin:10px 12px;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
-        <span style="font-size:13px;color:#888;font-weight:600;white-space:nowrap;">📅 날짜</span>
-        <input type="date" class="input-field" id="saleDate" style="margin:0;padding:8px 10px;font-size:14px;" />
+    <!-- 날짜 + 거래처 -->
+    <div style="background:white;margin:10px 12px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:visible;position:sticky;top:0;z-index:50;">
+      <!-- 날짜 -->
+      <div style="padding:14px 16px 0;">
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">날짜</div>
+        <input type="date" class="input-field" id="saleDate"
+          style="margin:0;padding:13px 14px;font-size:15px;border-radius:10px;border:1.5px solid #e8e8e8;width:100%;box-sizing:border-box;" />
       </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <span style="font-size:13px;color:#888;font-weight:600;white-space:nowrap;">🏢 거래처</span>
-        <div class="client-search-wrap" style="margin:0;flex:1;">
-          <input class="client-search-input" id="clientSearchInput" placeholder="거래처 검색..." autocomplete="off"
+      <!-- 구분선 -->
+      <div style="height:1px;background:#f5f5f5;margin:14px 16px 0;"></div>
+      <!-- 거래처 -->
+      <div style="padding:12px 16px 14px;">
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">거래처</div>
+        <div class="client-search-wrap" style="margin:0;">
+          <input class="client-search-input" id="clientSearchInput" placeholder="거래처 검색..."
+            autocomplete="off"
             oninput="filterClientDropdown('clientSearchInput','clientDropdown','clientSelect')"
             onfocus="openClientDropdown('clientSearchInput','clientDropdown','clientSelect')"
-            onblur="closeClientDropdownDelay('clientDropdown')" style="font-size:14px;padding:8px 10px;" />
+            onblur="closeClientDropdownDelay('clientDropdown')"
+            style="font-size:15px;padding:13px 14px;border:1.5px solid #e8e8e8;border-radius:10px;" />
           <div class="client-dropdown" id="clientDropdown"></div>
           <input type="hidden" id="clientSelect" />
         </div>
       </div>
-      <div id="clientArInfo" style="display:none;margin-top:8px;padding:8px 10px;background:#f0faf6;border-radius:8px;font-size:13px;color:#0F6E56;"></div>
+      <div id="clientArInfo" style="display:none;margin:0 16px 14px;padding:10px 12px;background:#f0faf6;border-radius:8px;font-size:13px;color:#0F6E56;"></div>
     </div>
 
     <!-- 거래유형 탭 -->
     <div class="type-selector" style="margin:0 12px 0;">
-      <button class="type-btn type-sale" id="btn-sale" onclick="setType('sale')">🛒 매출</button>
-      <button class="type-btn" id="btn-payment" onclick="setType('payment')">💰 입금</button>
-      <button class="type-btn" id="btn-return" onclick="setType('return')">↩️ 반품</button>
+      <button class="type-btn type-sale" id="btn-sale" onclick="setType('sale')">매출</button>
+      <button class="type-btn" id="btn-payment" onclick="setType('payment')">입금</button>
+      <button class="type-btn" id="btn-return" onclick="setType('return')">반품</button>
     </div>
 
     <!-- 매출 스캔 -->
@@ -324,8 +331,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- 브랜드별 요약 (바코드 위) -->
       <div id="brandSummary" style="display:none;margin:10px 12px 0;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
       <!-- 바코드 입력 -->
-      <div class="barcode-wrap" style="padding-top:8px;">
-        <input class="barcode-input" id="barcodeInput" placeholder="🔴 바코드 스캔 또는 입력 후 Enter" autocomplete="off" />
+      <div class="barcode-wrap" style="padding-top:8px;position:relative;">
+        <span style="position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none;">📷</span>
+        <input class="barcode-input" id="barcodeInput" placeholder="바코드를 스캔하거나 입력하세요" autocomplete="off" />
       </div>
       <!-- 스캔 내역 (바코드 바로 아래, 최신순) -->
       <div id="cartEmpty" style="text-align:center;padding:24px 20px;color:#bbb;">
@@ -352,8 +360,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <!-- 반품 브랜드별 요약 (바코드 위) -->
       <div id="returnBrandSummary" style="display:none;margin:10px 12px 0;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
       <!-- 반품 바코드 입력 -->
-      <div class="barcode-wrap" style="padding-top:8px;">
-        <input class="barcode-input" id="returnBarcodeInput" placeholder="🔴 반품 바코드 스캔 또는 입력 후 Enter" autocomplete="off" style="border-color:#e53935;" />
+      <div class="barcode-wrap" style="padding-top:8px;position:relative;">
+        <span style="position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none;">📷</span>
+        <input class="barcode-input" id="returnBarcodeInput" placeholder="반품 바코드를 스캔하거나 입력하세요" autocomplete="off" style="border-color:#1D9E75;" />
       </div>
       <!-- 반품 스캔 내역 (최신순) -->
       <div id="returnCartEmpty" style="text-align:center;padding:24px 20px;color:#bbb;">
@@ -411,11 +420,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="chip" onclick="switchLedgerTab(this,'byClient')">업체별</div>
       <div class="chip" onclick="switchLedgerTab(this,'byProduct')">상품별</div>
     </div>
-    <div class="summary-bar" id="ledgerSummary" style="display:none;margin:0 12px 8px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-top:none;">
-      <div class="summary-item"><div class="summary-label">매출</div><div class="summary-value green" id="sumSales">₩0</div></div>
-      <div class="summary-item"><div class="summary-label">원가</div><div class="summary-value red" id="sumCost">₩0</div></div>
-      <div class="summary-item"><div class="summary-label">매출이익</div><div class="summary-value blue" id="sumProfit">₩0</div></div>
-      <div class="summary-item"><div class="summary-label">이익률</div><div class="summary-value" id="sumRate">0%</div></div>
+    <div id="ledgerSummary" style="display:none;margin:0 12px 8px;">
+      <div class="stat-grid">
+        <div class="stat-card" style="text-align:right;">
+          <div class="stat-label">매출</div>
+          <div class="stat-value green" id="sumSales">₩0</div>
+        </div>
+        <div class="stat-card" style="text-align:right;">
+          <div class="stat-label">원가</div>
+          <div class="stat-value red" id="sumCost">₩0</div>
+        </div>
+        <div class="stat-card" style="text-align:right;">
+          <div class="stat-label">매출이익</div>
+          <div class="stat-value blue" id="sumProfit">₩0</div>
+        </div>
+        <div class="stat-card" style="text-align:right;">
+          <div class="stat-label">이익률</div>
+          <div class="stat-value blue" id="sumRate">0%</div>
+        </div>
+      </div>
     </div>
     <div id="ledgerList"></div>
     <div style="height:48px;"></div>
@@ -481,19 +504,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-ar" style="display:none;" class="screen">
   <div class="page-header">
     <button class="back-btn" onclick="showHome()">←</button>
-    <span class="page-title">미수금현황</span>
+    <span class="page-title">미수금</span>
   </div>
   <div class="page-body" style="background:#f4f6f9;padding-bottom:20px;">
     <!-- 요약 카드 -->
-    <div style="margin:12px 12px 14px;background:linear-gradient(135deg,#1D9E75,#0d7a5a);border-radius:20px;padding:20px;color:white;box-shadow:0 4px 16px rgba(29,158,117,0.35);">
-      <div style="font-size:12px;opacity:0.8;margin-bottom:4px;">총 미수금</div>
-      <div id="arTotal" style="font-size:26px;font-weight:700;margin-bottom:14px;">₩0</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:7px 14px;text-align:center;">
-          <div style="font-size:11px;opacity:0.8;margin-bottom:2px;">미수 거래처</div>
-          <div id="arCount" style="font-size:15px;font-weight:600;">0개</div>
-        </div>
-        <div style="font-size:12px;opacity:0.75;">터치하여 원장 확인 →</div>
+    <div style="margin:12px 12px 14px;background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.09);">
+      <!-- 상단: 초록 배경 미수금액 -->
+      <div style="background:#1D9E75;padding:18px 20px 16px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:6px;letter-spacing:0.5px;">미수금</div>
+        <div id="arTotal" style="font-size:28px;font-weight:700;color:white;letter-spacing:-0.5px;">₩0</div>
+      </div>
+      <!-- 하단: 흰 배경 거래처 수 -->
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:13px;color:#888;">미수 거래처</span>
+        <span id="arCount" style="background:#e8f5e9;color:#1D9E75;font-size:14px;font-weight:700;padding:4px 14px;border-radius:999px;">0개</span>
       </div>
     </div>
     <!-- 검색 -->
@@ -513,7 +537,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-stats" style="display:none;" class="screen">
   <div class="page-header">
     <button class="back-btn" onclick="showHome()">←</button>
-    <span class="page-title">통계</span>
+    <span class="page-title">판매통계</span>
   </div>
   <div class="page-body">
     <div class="date-wrap" style="padding-top:10px;">
@@ -542,7 +566,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-clients" style="display:none;" class="screen">
   <div class="page-header">
     <button class="back-btn" onclick="showHome()">←</button>
-    <span class="page-title">거래처</span>
+    <span class="page-title">거래처관리</span>
   </div>
   <div class="page-body" style="padding-bottom:80px;">
     <div style="display:flex;gap:8px;padding:10px 12px 0;">
@@ -563,7 +587,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-products" style="display:none;" class="screen">
   <div class="page-header">
     <button class="back-btn" onclick="showHome()">←</button>
-    <span class="page-title">상품등록</span>
+    <span class="page-title">상품관리</span>
   </div>
   <div class="page-body" style="padding-bottom:80px;">
     <div style="display:flex;gap:8px;padding:10px 12px 0;">
@@ -824,6 +848,8 @@ window.openClientDropdown = function(inputId, dropId, hiddenId) {
   const input=document.getElementById(inputId);
   const drop=document.getElementById(dropId);
   if(!drop) return;
+  // ✅ 모바일 키보드 올라올 때 입력창이 보이도록 스크롤
+  if(input) setTimeout(()=>input.scrollIntoView({behavior:'smooth',block:'start'}), 300);
   const q=(input?input.value:'').trim();
   const list=window.dbClients.filter(c=>!q||c.name.includes(q)||(c.city||'').includes(q));
   const curVal=document.getElementById(hiddenId)?document.getElementById(hiddenId).value:'';
@@ -1998,12 +2024,12 @@ window.renderStats = async function() {
   const totalQty=filtered.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+i.qty,0),0)-filteredReturn.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+i.qty,0),0);
   const totalAR=window.dbClients.reduce((s,c)=>s+(c.ar||0),0);
   document.getElementById('statsGrid').innerHTML=
-    '<div class="stat-card"><div class="stat-label">총 매출</div><div class="stat-value green">'+fmtShort(totalSales)+'</div><div class="stat-sub">'+filtered.length+'건</div></div>'+
-    '<div class="stat-card"><div class="stat-label">총 원가</div><div class="stat-value red">'+fmtShort(totalCost)+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">매출이익</div><div class="stat-value blue">'+fmtShort(profit)+'</div><div class="stat-sub">이익률 '+rate+'%</div></div>'+
-    '<div class="stat-card"><div class="stat-label">총 미수금</div><div class="stat-value red">'+fmtShort(totalAR)+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">총 판매수량</div><div class="stat-value">'+totalQty.toLocaleString()+'개</div></div>'+
-    '<div class="stat-card"><div class="stat-label">마진율</div><div class="stat-value blue">'+rate+'%</div><div class="stat-sub">이익 '+fmtShort(profit)+'</div></div>';
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">매출</div><div class="stat-value green">'+fmtShort(totalSales)+'</div><div class="stat-sub">'+filtered.length+'건</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">원가</div><div class="stat-value red">'+fmtShort(totalCost)+'</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">매출이익</div><div class="stat-value blue">'+fmtShort(profit)+'</div><div class="stat-sub">이익률 '+rate+'%</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">미수금</div><div class="stat-value red">'+fmtShort(totalAR)+'</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">판매수량</div><div class="stat-value">'+totalQty.toLocaleString()+'개</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">마진율</div><div class="stat-value blue">'+rate+'%</div><div class="stat-sub">이익 '+fmtShort(profit)+'</div></div>';
   // 거래처별 매출 TOP5
   const byC={};
   filtered.forEach(s=>{byC[s.clientName]=(byC[s.clientName]||0)+s.total;});
