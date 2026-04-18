@@ -400,10 +400,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
-    <div style="padding:0 12px 10px;"><input type="date" class="input-field" id="stmtDate" /></div>
+    <div style="padding:0 12px 10px;">
+      <input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" />
+      <div id="stmtDateInfo" style="margin-top:6px;font-size:12px;color:#1D9E75;font-weight:600;min-height:18px;"></div>
+    </div>
     <div class="section-label">거래처 선택</div>
     <div class="client-search-wrap">
-      <input class="client-search-input" id="stmtClientInput" placeholder="거래처 검색..." autocomplete="off" oninput="filterClientDropdown('stmtClientInput','stmtClientDropdown','stmtClient')" onfocus="openClientDropdown('stmtClientInput','stmtClientDropdown','stmtClient')" onblur="closeClientDropdownDelay('stmtClientDropdown')" />
+      <input class="client-search-input" id="stmtClientInput" placeholder="터치하면 판매 거래처 목록..." autocomplete="off"
+        oninput="filterSaleDateDropdown('stmtDate','stmtClientInput','stmtClientDropdown','stmtClient')"
+        onfocus="openSaleDateDropdown('stmtDate','stmtClientInput','stmtClientDropdown','stmtClient')"
+        onblur="closeClientDropdownDelay('stmtClientDropdown')" />
       <div class="client-dropdown" id="stmtClientDropdown"></div>
       <input type="hidden" id="stmtClient" />
     </div>
@@ -425,10 +431,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
-    <div style="padding:0 12px 10px;"><input type="date" class="input-field" id="pickDate" /></div>
+    <div style="padding:0 12px 10px;">
+      <input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" />
+      <div id="pickDateInfo" style="margin-top:6px;font-size:12px;color:#1D9E75;font-weight:600;min-height:18px;"></div>
+    </div>
     <div class="section-label">거래처 선택</div>
     <div class="client-search-wrap">
-      <input class="client-search-input" id="pickClientInput" placeholder="거래처 검색..." autocomplete="off" oninput="filterClientDropdown('pickClientInput','pickClientDropdown','pickClient')" onfocus="openClientDropdown('pickClientInput','pickClientDropdown','pickClient')" onblur="closeClientDropdownDelay('pickClientDropdown')" />
+      <input class="client-search-input" id="pickClientInput" placeholder="터치하면 판매 거래처 목록..." autocomplete="off"
+        oninput="filterSaleDateDropdown('pickDate','pickClientInput','pickClientDropdown','pickClient')"
+        onfocus="openSaleDateDropdown('pickDate','pickClientInput','pickClientDropdown','pickClient')"
+        onblur="closeClientDropdownDelay('pickClientDropdown')" />
       <div class="client-dropdown" id="pickClientDropdown"></div>
       <input type="hidden" id="pickClient" />
     </div>
@@ -679,9 +691,19 @@ window.showPage = function(name) {
   if(name==='clients') renderClients();
   if(name==='products') renderProducts();
   if(name==='ar') renderAR();
+  if(name==='statement'){
+    document.getElementById('stmtDate').value=td;
+    document.getElementById('stmtClientInput').value='';
+    document.getElementById('stmtClient').value='';
+    document.getElementById('stmtPreview').innerHTML='';
+    document.getElementById('stmtActions').style.display='none';
+    updateSaleDateInfo('stmtDate','stmtDateInfo');
+  }
   if(name==='picking'){
     document.getElementById('pickDate').value=td;
-    renderClientSelects();
+    document.getElementById('pickClientInput').value='';
+    document.getElementById('pickClient').value='';
+    updateSaleDateInfo('pickDate','pickDateInfo');
   }
   history.pushState({page:name},'');
 };
@@ -766,6 +788,62 @@ window.closeClientDropdownDelay = function(dropId) {
     const d=document.getElementById(dropId);
     if(d) d.style.display='none';
   }, 200);
+};
+
+// ===== 날짜별 판매 거래처 드롭다운 =====
+function getSaleDateClientList(date, query) {
+  const salesOnDate = window.dbSales.filter(s => s.date === date && (s.type === 'sale' || !s.type));
+  const clientIds = [...new Set(salesOnDate.map(s => s.clientId))];
+  const clients = clientIds.map(id => window.dbClients.find(c => c.id === id)).filter(Boolean);
+  clients.sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+  if (!query) return clients;
+  return clients.filter(c => c.name.includes(query) || (c.city||'').includes(query));
+}
+
+window.updateSaleDateInfo = function(dateInputId, infoId) {
+  const date = document.getElementById(dateInputId).value;
+  const el = document.getElementById(infoId);
+  if (!el) return;
+  if (!date) { el.textContent = ''; return; }
+  const count = getSaleDateClientList(date, '').length;
+  el.textContent = count > 0 ? ('판매 거래처 ' + count + '개 있음') : '해당 날짜 판매 내역 없음';
+  el.style.color = count > 0 ? '#1D9E75' : '#aaa';
+};
+
+window.onStmtDateChange = function() {
+  document.getElementById('stmtClientInput').value = '';
+  document.getElementById('stmtClient').value = '';
+  updateSaleDateInfo('stmtDate', 'stmtDateInfo');
+};
+window.onPickDateChange = function() {
+  document.getElementById('pickClientInput').value = '';
+  document.getElementById('pickClient').value = '';
+  updateSaleDateInfo('pickDate', 'pickDateInfo');
+};
+
+window.openSaleDateDropdown = function(dateInputId, inputId, dropId, hiddenId) {
+  const date = document.getElementById(dateInputId).value;
+  const input = document.getElementById(inputId);
+  const drop = document.getElementById(dropId);
+  if (!drop) return;
+  const q = (input ? input.value : '').trim();
+  const list = getSaleDateClientList(date, q);
+  const curVal = document.getElementById(hiddenId) ? document.getElementById(hiddenId).value : '';
+  if (list.length) {
+    drop.innerHTML = list.map(c =>
+      `<div class="client-dropdown-item${c.id===curVal?' selected':''}" onmousedown="selectClient('${c.id}','${c.name}','${inputId}','${dropId}','${hiddenId}')">${c.name}${c.city?' <span style="font-size:12px;color:#aaa;">('+c.city+')</span>':''}</div>`
+    ).join('');
+  } else {
+    drop.innerHTML = date
+      ? '<div class="client-dropdown-empty">해당 날짜 판매 내역 없음<br><span style="font-size:11px;color:#bbb;">날짜를 확인해주세요</span></div>'
+      : '<div class="client-dropdown-empty">날짜를 먼저 선택해주세요</div>';
+  }
+  drop.style.display = 'block';
+};
+
+window.filterSaleDateDropdown = function(dateInputId, inputId, dropId, hiddenId) {
+  document.getElementById(hiddenId).value = '';
+  openSaleDateDropdown(dateInputId, inputId, dropId, hiddenId);
 };
 
 window.updateArInfo = function(clientId) {
@@ -1433,13 +1511,19 @@ window.renderAR = function(filter='') {
       else if(s.type==='payment'){bal=Math.max(0,bal-s.total);tP+=s.total;}
     });
     return{...c,calcAR:bal,tS,tP,tR};
-  }).filter(c=>c.calcAR>0);
+  }); // 0원 포함 전체 표시
+  list.sort((a,b)=>b.calcAR-a.calcAR); // 미수금 많은 순 정렬
   const total=list.reduce((s,c)=>s+c.calcAR,0);
+  const arCount=list.filter(c=>c.calcAR>0).length;
   document.getElementById('arTotal').textContent=fmt(total);
-  document.getElementById('arCount').textContent=list.length+'개';
-  document.getElementById('arList').innerHTML=list.length?list.map(c=>
-    `<div class="ar-item" onclick="showARDetail('${c.id}')">`+
-    '<div class="ar-top"><span class="ar-company">'+c.name+'</span><span class="ar-amount">'+fmt(c.calcAR)+'</span></div>'+
+  document.getElementById('arCount').textContent=arCount+'개';
+  document.getElementById('arList').innerHTML=list.length?list.map(c=>{
+    const isZero=c.calcAR===0;
+    const amtColor=isZero?'#aaa':'#e53935';
+    const barW=isZero?0:Math.min(100,Math.round(c.calcAR/(c.arInit||c.calcAR||1)*100));
+    return `<div class="ar-item" onclick="showARDetail('${c.id}')" style="${isZero?'opacity:0.6;':''}">`+
+    '<div class="ar-top"><span class="ar-company">'+c.name+'</span>'+
+    '<span class="ar-amount" style="color:'+amtColor+';">'+fmt(c.calcAR)+'</span></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:7px;">'+
     '<div style="background:#f0faf6;border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">매출</div>'+
@@ -1447,14 +1531,15 @@ window.renderAR = function(filter='') {
     '<div style="background:#e3f2fd;border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">입금</div>'+
       '<div style="font-size:13px;font-weight:700;color:#1976D2;">'+fmt(c.tP)+'</div></div>'+
-    '<div style="background:#ffebee;border-radius:7px;padding:5px 8px;text-align:center;">'+
+    '<div style="background:'+(isZero?'#f5f5f5':'#ffebee')+';border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">잔금</div>'+
-      '<div style="font-size:13px;font-weight:700;color:#e53935;">'+fmt(c.calcAR)+'</div></div>'+
+      '<div style="font-size:13px;font-weight:700;color:'+amtColor+';">'+fmt(c.calcAR)+'</div></div>'+
     '</div>'+
-    '<div class="ar-bar-bg"><div class="ar-bar-fill" style="width:'+Math.min(100,Math.round(c.calcAR/(c.arInit||c.calcAR||1)*100))+'%"></div></div>'+
-    '<div class="ar-meta"><span>초기: '+fmt(c.arInit||0)+'</span><span>터치하여 원장 보기 →</span></div>'+
-    '</div>').join(''):
-    '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">미수금이 없습니다</div></div>';
+    '<div class="ar-bar-bg"><div class="ar-bar-fill" style="width:'+barW+'%;background:'+(isZero?'#ccc':'#e53935')+'"></div></div>'+
+    '<div class="ar-meta"><span>초기: '+fmt(c.arInit||0)+'</span><span>'+(isZero?'✅ 완납':'터치하여 원장 보기 →')+'</span></div>'+
+    '</div>';
+  }).join(''):
+    '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-text">거래처가 없습니다</div></div>';
 };
 
 // 거래처 원장 (날짜별 매출/입금/잔금)
