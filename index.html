@@ -252,6 +252,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="home-card-label">거래명세표</div>
       <div class="home-card-sub">출력/이메일</div>
     </div>
+    <div class="home-card teal" onclick="showPage('picking')">
+      <div class="home-card-icon">📦</div>
+      <div class="home-card-label">출고리스트</div>
+      <div class="home-card-sub">거래처별 판매내역</div>
+    </div>
     <div class="home-card red" onclick="showPage('ar')">
       <div class="home-card-icon">💸</div>
       <div class="home-card-label">미수금현황</div>
@@ -259,28 +264,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="home-card purple" onclick="showPage('stats')">
       <div class="home-card-icon">📊</div>
-      <div class="home-card-label">통계</div>
+      <div class="home-card-label">판매통계</div>
       <div class="home-card-sub">매출/이익률</div>
     </div>
-    <div class="home-card teal" onclick="showPage('clients')">
+    <div class="home-card blue" onclick="showPage('clients')">
       <div class="home-card-icon">🏢</div>
-      <div class="home-card-label">거래처</div>
+      <div class="home-card-label">거래처관리</div>
       <div class="home-card-sub">업체 관리</div>
     </div>
     <div class="home-card pink" onclick="showPage('products')">
       <div class="home-card-icon">👓</div>
-      <div class="home-card-label">상품등록</div>
+      <div class="home-card-label">상품관리</div>
       <div class="home-card-sub">바코드 등록</div>
     </div>
-    <div class="home-card gray" onclick="showPage('settings')">
+    <div class="home-card gray" onclick="showPage('settings')" style="grid-column:1/-1;">
       <div class="home-card-icon">⚙️</div>
       <div class="home-card-label">설정</div>
       <div class="home-card-sub">회사정보</div>
-    </div>
-    <div class="home-card orange" onclick="showPage('picking')" style="grid-column:1/-1;">
-      <div class="home-card-icon">📦</div>
-      <div class="home-card-label">출고리스트</div>
-      <div class="home-card-sub">거래처별 판매내역</div>
     </div>
   </div>
 </div>
@@ -321,15 +321,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- 매출 스캔 -->
     <div id="scanSection">
-      <div class="barcode-wrap" style="padding-top:10px;">
+      <!-- 브랜드별 요약 (바코드 위) -->
+      <div id="brandSummary" style="display:none;margin:10px 12px 0;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
+      <!-- 바코드 입력 -->
+      <div class="barcode-wrap" style="padding-top:8px;">
         <input class="barcode-input" id="barcodeInput" placeholder="🔴 바코드 스캔 또는 입력 후 Enter" autocomplete="off" />
       </div>
-      <div class="section-label">판매목록 <span id="cartCount" style="color:#1D9E75;"></span></div>
-      <div id="cartList"></div>
-      <div id="cartEmpty" style="text-align:center;padding:30px 20px;color:#bbb;">
-        <div style="font-size:44px;margin-bottom:10px;">📦</div>
+      <!-- 스캔 내역 (바코드 바로 아래, 최신순) -->
+      <div id="cartEmpty" style="text-align:center;padding:24px 20px;color:#bbb;">
+        <div style="font-size:36px;margin-bottom:8px;">📦</div>
         <div style="font-size:14px;">바코드를 스캔하면 추가됩니다</div>
       </div>
+      <div id="cartDetailWrap2" style="display:none;">
+        <div class="section-label">스캔 내역 <span id="cartCount" style="color:#1D9E75;"></span></div>
+        <div id="cartList" style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
+      </div>
+      <!-- 합계 -->
       <div id="totalArea" style="display:none;">
         <div class="total-box">
           <div class="vat-row"><span>공급가액</span><span id="totalSupply">₩0</span></div>
@@ -337,23 +344,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div class="total-row"><span>수량</span><span id="totalQty">0개</span></div>
           <div class="total-row main"><span>매출 합계</span><span id="totalAmt" style="color:#1D9E75;">₩0</span></div>
         </div>
-        <button class="btn btn-secondary" onclick="clearCart()" style="margin-top:0;">🗑️ 매출 초기화</button>
       </div>
     </div>
 
     <!-- 반품 -->
     <div id="returnSection" style="display:none;">
-      <div style="padding:10px 12px 8px;"><input class="input-field" id="returnSearch" placeholder="브랜드 검색..." oninput="renderReturnList(this.value)" /></div>
-      <div id="returnList"></div>
+      <!-- 반품 브랜드별 요약 (바코드 위) -->
+      <div id="returnBrandSummary" style="display:none;margin:10px 12px 0;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
+      <!-- 반품 바코드 입력 -->
+      <div class="barcode-wrap" style="padding-top:8px;">
+        <input class="barcode-input" id="returnBarcodeInput" placeholder="🔴 반품 바코드 스캔 또는 입력 후 Enter" autocomplete="off" style="border-color:#e53935;" />
+      </div>
+      <!-- 반품 스캔 내역 (최신순) -->
+      <div id="returnCartEmpty" style="text-align:center;padding:24px 20px;color:#bbb;">
+        <div style="font-size:36px;margin-bottom:8px;">↩️</div>
+        <div style="font-size:14px;">반품 바코드를 스캔하면 추가됩니다</div>
+      </div>
       <div id="returnCartArea" style="display:none;">
         <div class="section-label">반품 목록 <span id="returnCartCount" style="color:#e53935;"></span></div>
-        <div id="returnCartList"></div>
+        <div id="returnCartList" style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
         <div class="total-box" style="margin:10px 12px;">
           <div class="vat-row"><span>공급가액</span><span id="returnSupply">₩0</span></div>
           <div class="vat-row"><span>세액</span><span id="returnVat">₩0</span></div>
           <div class="total-row main"><span>반품 합계</span><span id="returnTotal" style="color:#e53935;">₩0</span></div>
         </div>
-        <button class="btn btn-secondary" onclick="clearReturnCart()" style="margin-top:0;">🗑️ 반품 초기화</button>
       </div>
     </div>
 
@@ -374,7 +388,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <button id="saveSessionBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;" onclick="saveSession()">✅ 저장하기</button>
-    <button id="clearSessionBtn" class="btn btn-secondary" style="display:none;margin-top:0;" onclick="clearSession()">🗑️ 전체 초기화</button>
+    <button id="clearSessionBtn" class="btn btn-secondary" style="display:none;margin-top:0;" onclick="clearSession()">🗑️ 초기화</button>
   </div>
 </div>
 
@@ -426,17 +440,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
       <input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" />
-      <div id="stmtDateInfo" style="margin-top:6px;font-size:12px;color:#1D9E75;font-weight:600;min-height:18px;"></div>
     </div>
-    <div class="section-label">거래처 선택</div>
-    <div class="client-search-wrap">
-      <input class="client-search-input" id="stmtClientInput" placeholder="터치하면 판매 거래처 목록..." autocomplete="off"
-        oninput="filterSaleDateDropdown('stmtDate','stmtClientInput','stmtClientDropdown','stmtClient')"
-        onfocus="openSaleDateDropdown('stmtDate','stmtClientInput','stmtClientDropdown','stmtClient')"
-        onblur="closeClientDropdownDelay('stmtClientDropdown')" />
-      <div class="client-dropdown" id="stmtClientDropdown"></div>
-      <input type="hidden" id="stmtClient" />
-    </div>
+    <div class="section-label" id="stmtClientLabel">거래처 선택</div>
+    <div id="stmtClientCards" style="padding:0 12px 10px;"></div>
+    <input type="hidden" id="stmtClient" />
     <button class="btn btn-primary" onclick="generateStatement()">📄 명세표 생성</button>
     <div id="stmtPreview" style="margin:0 12px;"></div>
     <div id="stmtActions" style="display:none;">
@@ -457,17 +464,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
       <input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" />
-      <div id="pickDateInfo" style="margin-top:6px;font-size:12px;color:#1D9E75;font-weight:600;min-height:18px;"></div>
     </div>
-    <div class="section-label">거래처 선택</div>
-    <div class="client-search-wrap">
-      <input class="client-search-input" id="pickClientInput" placeholder="터치하면 판매 거래처 목록..." autocomplete="off"
-        oninput="filterSaleDateDropdown('pickDate','pickClientInput','pickClientDropdown','pickClient')"
-        onfocus="openSaleDateDropdown('pickDate','pickClientInput','pickClientDropdown','pickClient')"
-        onblur="closeClientDropdownDelay('pickClientDropdown')" />
-      <div class="client-dropdown" id="pickClientDropdown"></div>
-      <input type="hidden" id="pickClient" />
-    </div>
+    <div class="section-label" id="pickClientLabel">거래처 선택</div>
+    <div id="pickClientCards" style="padding:0 12px 10px;"></div>
+    <input type="hidden" id="pickClient" />
     <button class="btn btn-primary" onclick="generatePickingList()">📦 리스트 생성</button>
     <div id="pickPreview" style="margin:0 12px;"></div>
     <div id="pickActions" style="display:none;">
@@ -621,6 +621,12 @@ function getKSTDate(offsetMonths=0) {
   if(offsetMonths !== 0) { kst.setMonth(kst.getMonth() + offsetMonths); }
   return kst.toISOString().split('T')[0];
 }
+// ✅ 이번달 1일 (한국시간)
+function getKSTMonthStart() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().split('T')[0].substring(0,7) + '-01';
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyCZLmLw2iMf87AVE8SfRXgLI8OumooejzY",
@@ -646,10 +652,10 @@ const _kstNow = new Date(new Date().getTime() + 9*60*60*1000);
 document.getElementById('homeDate').textContent = _kstNow.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
 
 // 날짜 범위 기본값: 1개월 전~오늘 (한국시간)
-const firstDay = getKSTDate(-1); // ✅ 1개월 전
+const firstDay = getKSTMonthStart(); // ✅ 이번달 1일
 document.getElementById('ledgerFrom').value = firstDay;
 document.getElementById('ledgerTo').value = today;
-document.getElementById('statsFrom').value = firstDay;
+document.getElementById('statsFrom').value = firstDay; // 이번달 1일
 document.getElementById('statsTo').value = today;
 
 // 설정 로드
@@ -708,7 +714,7 @@ async function fetchSalesRange(from, to) {
   } catch(e){console.error('sales 로드 오류:',e);}
 }
 // 앱 시작 시 최근 1개월 로드
-fetchSalesRange(getKSTDate(-1), getKSTDate()).then(()=>{renderLedger();renderStats();});
+fetchSalesRange(getKSTMonthStart(), getKSTDate()).then(()=>{renderLedger();renderStats();});
 
 // VAT 계산 (VAT포함 → 공급가, VAT)
 window.calcVat = function(totalAmt) {
@@ -740,12 +746,12 @@ window.showPage = function(name) {
     setTimeout(()=>{const b=document.getElementById('barcodeInput');if(b)b.focus();},200);
   }
   if(name==='ledger'){
-    document.getElementById('ledgerFrom').value=getKSTDate(-1); // ✅ 1개월 전
+    document.getElementById('ledgerFrom').value=getKSTMonthStart(); // ✅ 이번달 1일
     document.getElementById('ledgerTo').value=td;  // ✅ 종료일 오늘로
     renderLedger();
   }
   if(name==='stats'){
-    document.getElementById('statsFrom').value=getKSTDate(-1); // ✅ 1개월 전
+    document.getElementById('statsFrom').value=getKSTMonthStart(); // ✅ 이번달 1일
     document.getElementById('statsTo').value=td;   // ✅ 종료일 오늘로
     renderStats();
   }
@@ -754,17 +760,15 @@ window.showPage = function(name) {
   if(name==='ar') renderAR();
   if(name==='statement'){
     document.getElementById('stmtDate').value=td;
-    document.getElementById('stmtClientInput').value='';
     document.getElementById('stmtClient').value='';
     document.getElementById('stmtPreview').innerHTML='';
     document.getElementById('stmtActions').style.display='none';
-    fetchSalesRange(td,td).then(()=>updateSaleDateInfo('stmtDate','stmtDateInfo'));
+    fetchSalesRange(td,td).then(()=>renderClientCardList('stmtDate','stmtClientCards','stmtClient','stmtClientLabel'));
   }
   if(name==='picking'){
     document.getElementById('pickDate').value=td;
-    document.getElementById('pickClientInput').value='';
     document.getElementById('pickClient').value='';
-    fetchSalesRange(td,td).then(()=>updateSaleDateInfo('pickDate','pickDateInfo'));
+    fetchSalesRange(td,td).then(()=>renderClientCardList('pickDate','pickClientCards','pickClient','pickClientLabel'));
   }
   history.pushState({page:name},'');
 };
@@ -876,17 +880,47 @@ window.updateSaleDateInfo = function(dateInputId, infoId) {
 
 window.onStmtDateChange = async function() {
   const date=document.getElementById('stmtDate').value;
-  document.getElementById('stmtClientInput').value = '';
   document.getElementById('stmtClient').value = '';
   await fetchSalesRange(date, date);
-  updateSaleDateInfo('stmtDate', 'stmtDateInfo');
+  renderClientCardList('stmtDate','stmtClientCards','stmtClient','stmtClientLabel');
 };
 window.onPickDateChange = async function() {
   const date=document.getElementById('pickDate').value;
-  document.getElementById('pickClientInput').value = '';
   document.getElementById('pickClient').value = '';
   await fetchSalesRange(date, date);
-  updateSaleDateInfo('pickDate', 'pickDateInfo');
+  renderClientCardList('pickDate','pickClientCards','pickClient','pickClientLabel');
+};
+
+// ✅ 거래처 카드 리스트 렌더링 (드롭다운 대신 바로 보이는 카드)
+window.renderClientCardList = function(dateInputId, cardsId, hiddenId, labelId) {
+  const date = document.getElementById(dateInputId)?.value;
+  const cardsEl = document.getElementById(cardsId);
+  const labelEl = document.getElementById(labelId);
+  const curVal = document.getElementById(hiddenId)?.value||'';
+  if(!cardsEl) return;
+  const clients = date ? getSaleDateClientList(date,'') : [];
+  if(labelEl) labelEl.textContent = clients.length>0
+    ? `거래처 선택 (${clients.length}개)`
+    : '거래처 선택';
+  if(!clients.length){
+    cardsEl.innerHTML='<div style="text-align:center;padding:18px;color:#aaa;font-size:14px;background:white;border-radius:10px;">해당 날짜 판매 내역 없음</div>';
+    return;
+  }
+  cardsEl.innerHTML = clients.map(c=>`
+    <div onclick="selectClientCard('${c.id}','${hiddenId}','${cardsId}','${dateInputId}')"
+      style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:${c.id===curVal?'#e8f5e9':'white'};border-radius:10px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:2px solid ${c.id===curVal?'#1D9E75':'transparent'};transition:all 0.15s;">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:${c.id===curVal?'#1D9E75':'#222'};">${c.name}</div>
+        ${c.city?`<div style="font-size:12px;color:#aaa;margin-top:2px;">${c.city}</div>`:''}
+      </div>
+      <div style="font-size:20px;">${c.id===curVal?'✅':'>'}</div>
+    </div>`).join('');
+};
+
+window.selectClientCard = function(clientId, hiddenId, cardsId, dateInputId) {
+  document.getElementById(hiddenId).value = clientId;
+  renderClientCardList(dateInputId, cardsId, hiddenId,
+    cardsId==='stmtClientCards'?'stmtClientLabel':'pickClientLabel');
 };
 
 window.openSaleDateDropdown = function(dateInputId, inputId, dropId, hiddenId) {
@@ -932,13 +966,17 @@ window.setType = function(type) {
   document.getElementById('scanSection').style.display=type==='sale'?'block':'none';
   document.getElementById('returnSection').style.display=type==='return'?'block':'none';
   document.getElementById('paymentSection').style.display=type==='payment'?'block':'none';
-  if(type==='return') renderReturnList();
+  if(type==='return') setTimeout(()=>{const b=document.getElementById('returnBarcodeInput');if(b)b.focus();},100);
   // ✅ 타입 전환 시 장바구니 유지 (매출 스캔 중 반품/입금 눌러도 안 사라짐)
 };
 
 // 바코드 스캔
 document.getElementById('barcodeInput').addEventListener('keydown',function(e){
   if(e.key==='Enter'&&this.value.trim()){addToCart(this.value.trim());this.value='';e.preventDefault();}
+});
+// 반품 바코드 스캔 이벤트
+document.getElementById('returnBarcodeInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&this.value.trim()){addToReturnByBarcode(this.value.trim());this.value='';e.preventDefault();}
 });
 
 window.addToCart = function(code) {
@@ -953,8 +991,21 @@ window.renderCart = function() {
   const list=document.getElementById('cartList');
   const empty=document.getElementById('cartEmpty');
   const area=document.getElementById('totalArea');
-  if(!window.cart.length){list.innerHTML='';empty.style.display='block';area.style.display='none';document.getElementById('cartCount').textContent='';renderSessionSummary();return;}
-  empty.style.display='none';area.style.display='block';
+  const brandEl=document.getElementById('brandSummary');
+  const detailWrap=document.getElementById('cartDetailWrap2');
+  if(!window.cart.length){
+    list.innerHTML='';
+    if(brandEl) brandEl.style.display='none';
+    if(detailWrap) detailWrap.style.display='none';
+    empty.style.display='block';
+    area.style.display='none';
+    document.getElementById('cartCount').textContent='';
+    renderSessionSummary();
+    return;
+  }
+  empty.style.display='none';
+  area.style.display='block';
+  if(detailWrap) detailWrap.style.display='block';
   const qty=window.cart.reduce((s,x)=>s+x.qty,0);
   const total=window.cart.reduce((s,x)=>s+x.qty*x.price,0);
   const {supply,vat}=calcVat(total);
@@ -963,9 +1014,33 @@ window.renderCart = function() {
   document.getElementById('totalSupply').textContent=fmt(supply);
   document.getElementById('totalVat').textContent=fmt(vat);
   document.getElementById('totalAmt').textContent=fmt(total);
+
+  // 브랜드별 요약 (바코드 위)
+  if(brandEl){
+    const brandMap={};
+    window.cart.forEach(item=>{
+      const key=item.brand||item.name||'기타';
+      if(!brandMap[key])brandMap[key]={qty:0,total:0};
+      brandMap[key].qty+=item.qty;
+      brandMap[key].total+=item.qty*item.price;
+    });
+    brandEl.style.display='block';
+    brandEl.innerHTML=
+      '<div style="padding:8px 14px 4px;font-size:11px;color:#888;font-weight:600;">브랜드별 합계</div>'+
+      Object.entries(brandMap).map(([brand,v])=>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #f5f5f5;">
+          <div><span style="font-size:14px;font-weight:600;color:#222;">${brand}</span>
+          <span style="font-size:12px;color:#888;margin-left:6px;">${v.qty}개</span></div>
+          <span style="font-size:14px;font-weight:700;color:#1D9E75;">${fmt(v.total)}</span>
+        </div>`).join('');
+  }
+
   renderSessionSummary();
-  list.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+window.cart.map((item,i)=>`
-    <div class="cart-item">
+
+  // 스캔 내역 - 최신순(역순)으로 표시
+  list.innerHTML=[...window.cart].reverse().map((item,ri)=>{
+    const i=window.cart.length-1-ri; // 실제 인덱스
+    return `<div class="cart-item">
       <div class="cart-info">
         <div class="cart-name">${item.brand}${item.modelNo?' '+item.modelNo:''} ${item.color}</div>
         <div class="cart-detail">바코드: ${item.barcode}${item.uid?' | 고유번호: '+item.uid:''}</div>
@@ -977,7 +1052,7 @@ window.renderCart = function() {
       </div>
       <div class="cart-price" style="color:#1D9E75;">${fmt(item.qty*item.price)}</div>
       <button class="del-btn" onclick="removeItem(${i})">×</button>
-    </div>`).join('')+'</div>';
+    </div>`;}).join('');
 };
 
 window.changeQty=(i,d)=>{window.cart[i].qty+=d;if(window.cart[i].qty<=0)window.cart.splice(i,1);renderCart();};
@@ -1005,9 +1080,28 @@ window.addToReturnCart = function(pid) {
   renderReturnCart();
 };
 
+// 반품 바코드 스캔
+window.addToReturnByBarcode = function(code) {
+  const p=window.barcodeMap[code];
+  if(!p){showToast('미등록 바코드: '+code,'#e53935');return;}
+  const ex=window.returnCart.find(x=>x.pid===p.id);
+  if(ex){ex.qty++;}else{window.returnCart.push({pid:p.id,barcode:p.barcode||p.id,brand:p.brand||p.name,modelNo:p.modelNo||'',color:p.color||'',uid:p.uid||'',price:p.price||0,cost:p.cost||0,qty:1});}
+  renderReturnCart();
+};
+
 window.renderReturnCart = function() {
   const area=document.getElementById('returnCartArea');
-  if(!window.returnCart.length){area.style.display='none';document.getElementById('returnCartCount').textContent='';renderSessionSummary();return;}
+  const brandEl=document.getElementById('returnBrandSummary');
+  const emptyEl=document.getElementById('returnCartEmpty');
+  if(!window.returnCart.length){
+    area.style.display='none';
+    if(brandEl) brandEl.style.display='none';
+    if(emptyEl) emptyEl.style.display='block';
+    document.getElementById('returnCartCount').textContent='';
+    renderSessionSummary();
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
   area.style.display='block';
   const total=window.returnCart.reduce((s,x)=>s+x.qty*x.price,0);
   const {supply,vat}=calcVat(total);
@@ -1015,10 +1109,35 @@ window.renderReturnCart = function() {
   document.getElementById('returnSupply').textContent=fmt(supply);
   document.getElementById('returnVat').textContent=fmt(vat);
   document.getElementById('returnTotal').textContent=fmt(total);
+
+  // 브랜드별 반품 요약
+  if(brandEl){
+    const brandMap={};
+    window.returnCart.forEach(item=>{
+      const key=item.brand||'기타';
+      if(!brandMap[key])brandMap[key]={qty:0,total:0};
+      brandMap[key].qty+=item.qty;
+      brandMap[key].total+=item.qty*item.price;
+    });
+    brandEl.style.display='block';
+    brandEl.innerHTML=
+      '<div style="padding:8px 14px 4px;font-size:11px;color:#888;font-weight:600;">브랜드별 반품 합계</div>'+
+      Object.entries(brandMap).map(([brand,v])=>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #f5f5f5;">
+          <div><span style="font-size:14px;font-weight:600;color:#222;">${brand}</span>
+          <span style="font-size:12px;color:#888;margin-left:6px;">${v.qty}개</span></div>
+          <span style="font-size:14px;font-weight:700;color:#e53935;">-${fmt(v.total)}</span>
+        </div>`).join('');
+  }
+
   renderSessionSummary();
-  document.getElementById('returnCartList').innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+window.returnCart.map((item,i)=>`
-    <div class="cart-item">
-      <div class="cart-info"><div class="cart-name">${item.brand} ${item.color}</div></div>
+  document.getElementById('returnCartList').innerHTML=[...window.returnCart].reverse().map((item,ri)=>{
+    const i=window.returnCart.length-1-ri;
+    return `<div class="cart-item">
+      <div class="cart-info">
+        <div class="cart-name">${item.brand}${item.modelNo?' '+item.modelNo:''} ${item.color}</div>
+        <div class="cart-detail">${item.uid?'고유번호: '+item.uid:''}</div>
+      </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeReturnQty(${i},-1)">−</button>
         <span class="qty-num">${item.qty}</span>
@@ -1026,7 +1145,7 @@ window.renderReturnCart = function() {
       </div>
       <div class="cart-price" style="color:#e53935;">-${fmt(item.qty*item.price)}</div>
       <button class="del-btn" onclick="removeReturnItem(${i})">×</button>
-    </div>`).join('')+'</div>';
+    </div>`;}).join('');
 };
 
 window.changeReturnQty=(i,d)=>{window.returnCart[i].qty+=d;if(window.returnCart[i].qty<=0)window.returnCart.splice(i,1);renderReturnCart();};
@@ -1092,17 +1211,22 @@ window.saveSession = async function() {
     }
     const newAr=(client.ar||0)+arChange;
     await updateDoc(doc(db,'clients',clientId),{ar:newAr});
-    // 카트만 초기화, 거래처/날짜는 유지
-    window.salesRange={from:'',to:''}; // ✅ 캐시 초기화 → 매출내역 재조회 보장
+    // ✅ 저장 후 전체 초기화 (거래처·날짜·카트 모두 리셋)
+    window.salesRange={from:'',to:''};
     window.cart=[];window.returnCart=[];
     document.getElementById('paymentAmt').value='';
+    // 거래처 선택 초기화
+    document.getElementById('clientSearchInput').value='';
+    document.getElementById('clientSelect').value='';
+    document.getElementById('clientArInfo').style.display='none';
+    // 날짜 오늘로 리셋
+    document.getElementById('saleDate').value=getKSTDate();
     renderCart();renderReturnCart();renderSessionSummary();
-    updateArInfo(clientId);
     setType('sale');
     const newMisu=newAr<0?('-'+fmt(Math.abs(newAr))):fmt(newAr);
     const parts=[];
     if(hasSale)parts.push('매출');if(hasReturn)parts.push('반품');if(payAmt>0)parts.push('입금');
-    showToast(`✅ ${parts.join('+')} 저장 완료  미수금: ${newMisu}`,'#1D9E75');
+    showToast(`✅ ${parts.join('+')} 저장 완료!  미수금: ${newMisu}`,'#1D9E75');
     setTimeout(()=>{const b=document.getElementById('barcodeInput');if(b)b.focus();},200);
   }catch(e){console.error(e);showToast('저장 오류: '+e.message,'#e53935');}
   showLoading(false);
@@ -1602,31 +1726,18 @@ window.emailPickingList = function() {
   if(!window.pickData){showToast('먼저 리스트를 생성해주세요','#888');return;}
   const {client, date, rows, totalQty} = window.pickData;
   const to = client.email||'';
-  // 거래처 이메일 없어도 발송 가능 (사용자가 수동 입력)
+  const ci = window.companyInfo||{};
   const subject = `[출고리스트] ${client.name} ${date}`;
-  let body = `${client.name} 귀하
-`;
-  body += `출고일: ${date}
-`;
-  body += `${'─'.repeat(30)}
-`;
-  body += `${'고유번호'.padEnd(8)}${'브랜드'.padEnd(12)}${'모델'.padEnd(8)}${'컬러'.padEnd(6)}수량
-`;
-  body += `${'─'.repeat(30)}
-`;
-  rows.forEach(r => {
-    const uid=(r.uid||'-').toString().padEnd(8);
-    const brand=(r.brand||'-').toString().padEnd(12);
-    const model=(r.modelNo||'-').toString().padEnd(8);
-    const color=(r.color||'-').toString().padEnd(6);
-    body += `${uid}${brand}${model}${color}${r.qty}개
-`;
+  let body = `${client.name} 귀하\n\n`;
+  body += `■ 출고리스트\n`;
+  body += `출고일: ${date}\n`;
+  if(ci.company) body += `공급처: ${ci.company}\n`;
+  if(ci.tel)     body += `연락처: ${ci.tel}\n`;
+  body += `\n`;
+  rows.forEach((r, i) => {
+    body += `${i+1}. ${r.uid||'-'}  ${r.brand||'-'}  ${r.modelNo||'-'}  ${r.color||'-'}  →  ${r.qty}개\n`;
   });
-  body += `${'─'.repeat(30)}
-`;
-  body += `합  계: ${totalQty}개
-
-감사합니다.`;
+  body += `\n합  계: ${totalQty}개\n\n감사합니다.`;
   const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.location.href = mailtoUrl;
 };
@@ -1892,7 +2003,7 @@ window.renderStats = async function() {
     '<div class="stat-card"><div class="stat-label">매출이익</div><div class="stat-value blue">'+fmtShort(profit)+'</div><div class="stat-sub">이익률 '+rate+'%</div></div>'+
     '<div class="stat-card"><div class="stat-label">총 미수금</div><div class="stat-value red">'+fmtShort(totalAR)+'</div></div>'+
     '<div class="stat-card"><div class="stat-label">총 판매수량</div><div class="stat-value">'+totalQty.toLocaleString()+'개</div></div>'+
-    '<div class="stat-card"><div class="stat-label">거래처 수</div><div class="stat-value">'+window.dbClients.length+'개</div></div>';
+    '<div class="stat-card"><div class="stat-label">마진율</div><div class="stat-value blue">'+rate+'%</div><div class="stat-sub">이익 '+fmtShort(profit)+'</div></div>';
   // 거래처별 매출 TOP5
   const byC={};
   filtered.forEach(s=>{byC[s.clientName]=(byC[s.clientName]||0)+s.total;});
