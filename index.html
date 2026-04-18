@@ -996,7 +996,7 @@ window.completeReturn = async function() {
   showLoading(true);
   try{
     await addDoc(collection(db,"sales"),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'return',items:window.returnCart.map(x=>({...x})),total,supply,vat,cost});
-    await updateDoc(doc(db,"clients",clientId),{ar:Math.max(0,(client.ar||0)-total)});
+    await updateDoc(doc(db,"clients",clientId),{ar:(client.ar||0)-total});
     window.returnCart=[];renderReturnCart();updateArInfo(clientId);
     alert(`↩️ 반품 등록!\n거래처: ${client.name}\n반품액: ${fmt(total)}`);
   }catch(e){alert('오류:'+e.message);}
@@ -1014,9 +1014,10 @@ window.completePayment = async function() {
   showLoading(true);
   try{
     await addDoc(collection(db,"sales"),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'payment',items:[],total:amt,supply:0,vat:0,cost:0});
-    await updateDoc(doc(db,"clients",clientId),{ar:Math.max(0,(client.ar||0)-amt)});
+    const newAr=(client.ar||0)-amt;
+    await updateDoc(doc(db,"clients",clientId),{ar:newAr});
     document.getElementById('paymentAmt').value='';updateArInfo(clientId);
-    alert(`💰 입금!\n거래처: ${client.name}\n입금액: ${fmt(amt)}\n현재 미수금: ${fmt(Math.max(0,(client.ar||0)-amt))}`);
+    alert(`💰 입금!\n거래처: ${client.name}\n입금액: ${fmt(amt)}\n현재 미수금: ${newAr<0?'-'+fmt(Math.abs(newAr)):fmt(newAr)}`);
   }catch(e){alert('오류:'+e.message);}
   showLoading(false);
 };
@@ -1507,8 +1508,8 @@ window.renderAR = function(filter='') {
     let bal=c.arInit||0,tS=0,tP=0,tR=0;
     txns.forEach(s=>{
       if(s.type==='sale'||!s.type){bal+=s.total;tS+=s.total;}
-      else if(s.type==='return'){bal=Math.max(0,bal-s.total);tR+=s.total;}
-      else if(s.type==='payment'){bal=Math.max(0,bal-s.total);tP+=s.total;}
+      else if(s.type==='return'){bal=bal-s.total;tR+=s.total;}
+      else if(s.type==='payment'){bal=bal-s.total;tP+=s.total;}
     });
     return{...c,calcAR:bal,tS,tP,tR};
   }); // 0원 포함 전체 표시
@@ -1519,11 +1520,14 @@ window.renderAR = function(filter='') {
   document.getElementById('arCount').textContent=arCount+'개';
   document.getElementById('arList').innerHTML=list.length?list.map(c=>{
     const isZero=c.calcAR===0;
-    const amtColor=isZero?'#aaa':'#e53935';
-    const barW=isZero?0:Math.min(100,Math.round(c.calcAR/(c.arInit||c.calcAR||1)*100));
-    return `<div class="ar-item" onclick="showARDetail('${c.id}')" style="${isZero?'opacity:0.6;':''}">`+
+    const isMinus=c.calcAR<0;
+    const amtColor=isMinus?'#1976D2':isZero?'#aaa':'#e53935';
+    const balLabel=isMinus?('-'+fmt(Math.abs(c.calcAR))):fmt(c.calcAR);
+    const barW=isZero||isMinus?0:Math.min(100,Math.round(c.calcAR/(c.arInit||c.calcAR||1)*100));
+    const statusLabel=isMinus?'💙 선입금':'✅ 완납';
+    return `<div class="ar-item" onclick="showARDetail('${c.id}')" style="${(isZero||isMinus)?'opacity:0.75;':''}">`+
     '<div class="ar-top"><span class="ar-company">'+c.name+'</span>'+
-    '<span class="ar-amount" style="color:'+amtColor+';">'+fmt(c.calcAR)+'</span></div>'+
+    '<span class="ar-amount" style="color:'+amtColor+';">'+balLabel+'</span></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:7px;">'+
     '<div style="background:#f0faf6;border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">매출</div>'+
@@ -1531,12 +1535,12 @@ window.renderAR = function(filter='') {
     '<div style="background:#e3f2fd;border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">입금</div>'+
       '<div style="font-size:13px;font-weight:700;color:#1976D2;">'+fmt(c.tP)+'</div></div>'+
-    '<div style="background:'+(isZero?'#f5f5f5':'#ffebee')+';border-radius:7px;padding:5px 8px;text-align:center;">'+
+    '<div style="background:'+(isMinus?'#e3f2fd':isZero?'#f5f5f5':'#ffebee')+';border-radius:7px;padding:5px 8px;text-align:center;">'+
       '<div style="font-size:10px;color:#888;margin-bottom:1px;">잔금</div>'+
-      '<div style="font-size:13px;font-weight:700;color:'+amtColor+';">'+fmt(c.calcAR)+'</div></div>'+
+      '<div style="font-size:13px;font-weight:700;color:'+amtColor+';">'+balLabel+'</div></div>'+
     '</div>'+
     '<div class="ar-bar-bg"><div class="ar-bar-fill" style="width:'+barW+'%;background:'+(isZero?'#ccc':'#e53935')+'"></div></div>'+
-    '<div class="ar-meta"><span>초기: '+fmt(c.arInit||0)+'</span><span>'+(isZero?'✅ 완납':'터치하여 원장 보기 →')+'</span></div>'+
+    '<div class="ar-meta"><span>초기: '+fmt(c.arInit||0)+'</span><span>'+(isZero||isMinus?statusLabel:'터치하여 원장 보기 →')+'</span></div>'+
     '</div>';
   }).join(''):
     '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-text">거래처가 없습니다</div></div>';
@@ -1574,8 +1578,8 @@ window.renderARDetail = function(clientId) {
   let prevBal=c.arInit||0;
   prevTxns.forEach(s=>{
     if(s.type==='sale'||!s.type)prevBal+=s.total;
-    else if(s.type==='return')prevBal=Math.max(0,prevBal-s.total);
-    else if(s.type==='payment')prevBal=Math.max(0,prevBal-s.total);
+    else if(s.type==='return')prevBal=prevBal-s.total;
+    else if(s.type==='payment')prevBal=prevBal-s.total;
   });
   const txns=window.dbSales.filter(s=>s.clientId===clientId&&s.date>=from&&s.date<=to).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
   let running=prevBal;
@@ -1584,8 +1588,8 @@ window.renderARDetail = function(clientId) {
     const isReturn=s.type==='return';
     const isPay=s.type==='payment';
     if(isSale)running+=s.total;
-    else if(isReturn)running=Math.max(0,running-s.total);
-    else if(isPay)running=Math.max(0,running-s.total);
+    else if(isReturn)running=running-s.total;
+    else if(isPay)running=running-s.total;
     return{id:s.id,date:s.date,type:s.type,total:s.total,items:s.items||[],sale:isSale?s.total:isReturn?-s.total:0,pay:isPay?s.total:0,balance:running};
   });
   const tSale=rows.reduce((a,r)=>a+(r.sale>0?r.sale:0),0);
@@ -1594,26 +1598,26 @@ window.renderARDetail = function(clientId) {
   const finalBal=running;
   document.getElementById('arDetailContent').innerHTML=
     '<div style="background:#f0faf6;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;">'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">이월 잔액</span><span style="font-weight:600;">'+fmt(prevBal)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">이월 잔액</span><span style="font-weight:600;">'+(prevBal<0?'<span style="color:#1976D2;">-'+fmt(Math.abs(prevBal))+'</span>':fmt(prevBal))+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">총 매출</span><span style="color:#1D9E75;font-weight:600;">+'+fmt(tSale)+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">총 반품</span><span style="color:#e53935;">-'+fmt(tReturn)+'</span></div>'+
     '<div style="display:flex;justify-content:space-between;border-top:1px solid #c8f0e0;padding-top:6px;"><span style="color:#888;">총 입금</span><span style="color:#1976D2;font-weight:600;">-'+fmt(tPay)+'</span></div>'+
     '</div>'+
-    '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'+
-    '<tr style="background:#f5f5f5;"><th style="padding:8px 6px;border-bottom:2px solid #ddd;text-align:left;">날짜</th><th style="padding:8px 6px;border-bottom:2px solid #ddd;text-align:right;color:#1D9E75;">매출</th><th style="padding:8px 6px;border-bottom:2px solid #ddd;text-align:right;color:#1976D2;">입금</th><th style="padding:8px 6px;border-bottom:2px solid #ddd;text-align:right;color:#e53935;">잔금</th></tr>'+
-    '<tr><td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;color:#888;font-size:12px;">이월</td><td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;">-</td><td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;">-</td><td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:600;">'+fmt(prevBal)+'</td></tr>'+
+    '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:15px;">'+
+    '<tr style="background:#f5f5f5;"><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;">날짜</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#1D9E75;">매출</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#1976D2;">입금</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:14px;font-weight:700;color:#e53935;">잔금</th></tr>'+
+    '<tr><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;color:#888;font-size:14px;text-align:center;">이월</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:700;color:'+(prevBal<0?'#1976D2':'inherit')+';">'+( prevBal<0?'-'+fmt(Math.abs(prevBal)):fmt(prevBal))+'</td></tr>'+
     rows.map(r=>`<tr style="cursor:pointer;" onclick="showARTxnDetail('${r.id}','${clientId}')">`+
-      '<td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;">'+
-        '<div style="font-size:13px;font-weight:600;">'+r.date.slice(2)+'</div>'+
-        '<div style="font-size:10px;color:#aaa;margin-top:1px;">'+(r.type==='payment'?'입금':r.type==='return'?'반품':'매출')+'</div>'+
+      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">'+
+        '<div style="font-size:15px;font-weight:600;">'+r.date.slice(2)+'</div>'+
+        '<div style="font-size:12px;color:#aaa;margin-top:2px;">'+(r.type==='payment'?'입금':r.type==='return'?'반품':'매출')+'</div>'+
       '</td>'+
-      '<td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:13px;color:'+(r.sale>0?'#1D9E75':r.sale<0?'#e53935':'#bbb')+';">'+(r.sale>0?fmt(r.sale):r.sale<0?'-'+fmt(Math.abs(r.sale)):'-')+'</td>'+
-      '<td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:13px;color:#1976D2;">'+(r.pay>0?fmt(r.pay):'-')+'</td>'+
-      '<td style="padding:7px 6px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:13px;font-weight:700;color:#e53935;">'+fmt(r.balance)+'</td>'+
+      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:600;color:'+(r.sale>0?'#1D9E75':r.sale<0?'#e53935':'#bbb')+';">'+(r.sale>0?fmt(r.sale):r.sale<0?'-'+fmt(Math.abs(r.sale)):'-')+'</td>'+
+      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:600;color:#1976D2;">'+(r.pay>0?fmt(r.pay):'-')+'</td>'+
+      '<td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;font-weight:700;color:'+(r.balance<0?'#1976D2':'#e53935')+';">'+( r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance))+'</td>'+
       '</tr>').join('')+
     '</table></div>'+
     '<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:16px;font-weight:700;border-top:2px solid #f0f0f0;margin-top:4px;">'+
-    '<span>현재 잔액</span><span style="color:#e53935;">'+fmt(finalBal)+'</span></div>';
+    '<span>현재 잔액</span><span style="color:'+(finalBal<0?'#1976D2':'#e53935')+';">'+( finalBal<0?'-'+fmt(Math.abs(finalBal)):fmt(finalBal))+'</span>'+(finalBal<0?' <span style="font-size:12px;color:#1976D2;margin-left:4px;">💙 선입금</span>':'')+'</div>';
 };
 
 window.showARTxnDetail = function(saleId, clientId) {
