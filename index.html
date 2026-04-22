@@ -1626,7 +1626,7 @@ window.printStatement = function() {
     const V = 'border:1px solid #444;padding:2px 4px;text-align:center;vertical-align:middle;font-size:8pt;overflow:hidden;white-space:nowrap;';
     const RH = 'height:6mm;';
     return `
-    <div style="width:100%;min-height:130mm;padding:2mm 6mm 1mm;box-sizing:border-box;">
+    <div style="width:100%;min-height:130mm;padding:4mm 6mm 4mm;box-sizing:border-box;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8mm;">
         <div style="font-size:8pt;color:#333;">Date : ${date}</div>
         <div style="border:2px solid #333;padding:1px 7px;font-size:8pt;font-weight:700;">${copyLabel}</div>
@@ -2478,9 +2478,9 @@ window.saveStmtPDF = function() {
   const origPad = el.style.paddingTop;
   el.style.paddingTop = '0';
   html2pdf().set({
-    margin: [4,4,4,4],
+    margin: [10,10,10,10],
     filename: filename,
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   }).from(el).save().then(()=>{
     el.style.paddingTop = origPad;
