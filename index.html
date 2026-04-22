@@ -2333,7 +2333,8 @@ window.deleteSale = async function(id) {
     }
     await deleteDoc(doc(db,'sales',id));
     closeModalDirect();
-    // Firebase에서 최신 데이터 다시 불러오기
+    // 캐시 초기화 후 강제 재조회
+    window.salesRange={from:null,to:null};
     const startEl=document.getElementById('ledgerStart');
     const endEl=document.getElementById('ledgerEnd');
     const start=startEl?startEl.value:getKSTMonthStart();
