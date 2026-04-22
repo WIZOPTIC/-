@@ -1719,20 +1719,8 @@ window.printStatement = function() {
 
   appEl.style.display = 'none';
   printDiv.style.display = 'block';
-
-  // A4 = 297mm, margin 4mm x2 = 289mm usable → in px at 96dpi ≈ 1091px
-  // Auto-scale to fit 1 page
-  setTimeout(()=>{
-    const body = document.getElementById('stmtPrintBody');
-    if(!body) return;
-    const A4_PX = 289 * 3.7795; // 289mm in px
-    const h = body.scrollHeight;
-    if(h > A4_PX) {
-      const scale = A4_PX / h;
-      body.style.transform = `scale(${scale})`;
-      body.style.width = `${100/scale}%`;
-    }
-  }, 100);
+  printDiv.style.overflowY = 'auto';
+  printDiv.style.height = '100vh';
 
   window.closePrintPreview = function() {
     printDiv.style.display = 'none';
