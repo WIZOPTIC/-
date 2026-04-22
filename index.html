@@ -1344,10 +1344,8 @@ window.showSaleDetail = function(id) {
   const tColor={sale:'#1D9E75',payment:'#1976D2',return:'#e53935'};
   const tLabel={sale:'매출',payment:'입금',return:'반품'};
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal">
-        <button class="modal-close" onclick="closeModalDirect()">×</button>
-        <div class="modal-title">${s.clientName}</div>
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+      <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">
           <span class="badge badge-${s.type||'sale'}">${tLabel[s.type]||'매출'}</span>
           <span style="font-size:13px;color:#888;">${s.date}</span>
@@ -1949,7 +1947,7 @@ window.showARTxnDetail = async function(saleId, clientId) {
       return '<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5;">'+brand+'</td><td style="padding:7px 4px;border-bottom:1px solid #f5f5f5;font-size:12px;">'+modelNo+'</td><td style="padding:7px 4px;border-bottom:1px solid #f5f5f5;font-size:12px;">'+color+'</td><td style="padding:7px;text-align:right;border-bottom:1px solid #f5f5f5;">'+it.qty+'</td><td style="padding:7px 8px;text-align:right;border-bottom:1px solid #f5f5f5;color:'+(tColor[s.type||'sale'])+'">'+fmt(it.qty*it.price)+'</td></tr>';
     }).join('')+'</table></div>';
   document.getElementById('modalArea').innerHTML=
-    '<div class="modal-overlay" onclick="closeModal(event)"><div class="modal">'+
+    '<div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;"><div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">'+
     `<button class="modal-close" onclick="restoreARDetail('${clientId}')">×</button>`+
     '<div class="modal-title">'+s.clientName+' · '+s.date+'</div>'+
     '<span class="badge badge-'+(s.type||'sale')+'" style="margin-bottom:12px;display:inline-block;">'+(tLabel[s.type]||'매출')+'</span>'+
@@ -2110,8 +2108,8 @@ window.showClientDetail = async function(id) {
     pT=cS.filter(s=>s.type==='payment').reduce((a,s)=>a+s.total,0);
   }catch(e){console.error(e);}
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal">
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+      <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
           <div class="avatar" style="width:50px;height:50px;font-size:20px;">${c.name[0]}</div>
@@ -2139,8 +2137,8 @@ window.showClientDetail = async function(id) {
 
 window.openAddClientModal = function() {
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal">
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+      <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div class="modal-title">거래처 등록</div>
         <div class="field-label">상호 *</div><input class="field-input" id="nc_name" placeholder="예: 한국안경" />
@@ -2230,8 +2228,8 @@ window.renderProducts = function(filter='') {
 
 window.openAddProductModal = function() {
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal">
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+      <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div class="modal-title">상품 등록</div>
         <div class="field-label">바코드 번호 *</div><input class="field-input" id="np_barcode" placeholder="바코드 스캔 또는 직접 입력" autofocus />
@@ -2274,8 +2272,8 @@ window.addProduct = async function() {
 window.openEditProductModal = function(id) {
   const p=window.dbProducts.find(x=>x.id===id);if(!p)return;
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal">
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+      <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div class="modal-title">상품 수정</div>
         <div class="field-label">바코드</div><input class="field-input" id="ep_barcode" value="${p.barcode||p.id}" readonly style="background:#f5f5f5;" />
@@ -2335,6 +2333,12 @@ window.deleteSale = async function(id) {
     }
     await deleteDoc(doc(db,'sales',id));
     closeModalDirect();
+    // Firebase에서 최신 데이터 다시 불러오기
+    const startEl=document.getElementById('ledgerStart');
+    const endEl=document.getElementById('ledgerEnd');
+    const start=startEl?startEl.value:getKSTMonthStart();
+    const end=endEl?endEl.value:getKSTDate();
+    await fetchSalesRange(start,end);
     renderLedger();
     alert('✅ 삭제됐습니다.');
   } catch(e) { alert('오류: '+e.message); }
@@ -2420,7 +2424,7 @@ window.uploadClientExcel = async function(input) {
     for(const r of rows){
       const name=(r['거래처명*']||r['거래처명']||'').toString().trim();
       if(!name){skip++;continue;}
-      const id = name.replace(/\s+/g,'_')+'_'+Date.now().toString(36);
+      const id = name.replace(/\s+/g,'_').replace(/\//g,'-').replace(/[^a-zA-Z0-9가-힣_\-]/g,'')+'_'+Date.now().toString(36);
       await setDoc(doc(db,'clients',id),{
         name,
         city:(r['도시']||'').toString().trim(),
@@ -2544,7 +2548,10 @@ window.showToast = function(msg, color='#1D9E75') {
 };
 
 window.closeModal=e=>{if(e.target.classList.contains('modal-overlay'))closeModalDirect();};
-window.closeModalDirect=()=>{document.getElementById('modalArea').innerHTML='';};
+window.closeModalDirect=()=>{
+  const m=document.getElementById('modalArea');
+  if(m){m.innerHTML='';m.style.display='none';m.offsetHeight;m.style.display='';}
+};
 window.showLoading=v=>{document.getElementById('loadingEl').style.display=v?'flex':'none';};
 window.fmt=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
 window.fmtShort=n=>{if(n>=100000000)return(n/100000000).toFixed(1)+'억';if(n>=10000000)return(n/10000000).toFixed(1)+'천만';if(n>=10000)return Math.round(n/10000)+'만원';return fmt(n);};
