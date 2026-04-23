@@ -1557,17 +1557,19 @@ window.printPickingList = function() {
 
   const html = `
     <div style="padding:8mm 10mm;font-family:'맑은 고딕','Malgun Gothic',sans-serif;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4mm;">
-        <div>
-          <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
-          <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;${ci.tel||''}</div>
+      <div style="page-break-inside:avoid;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4mm;">
+          <div>
+            <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
+            <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;${ci.tel||''}</div>
+          </div>
+          <div style="text-align:right;font-size:10pt;color:#444;">
+            <div>날짜: <strong>${date}</strong></div>
+            <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
+          </div>
         </div>
-        <div style="text-align:right;font-size:10pt;color:#444;">
-          <div>날짜: <strong>${date}</strong></div>
-          <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
-        </div>
+        <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
       </div>
-      <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
       <table style="width:100%;border-collapse:collapse;page-break-inside:auto;">
         <thead>
           <tr style="background:#1D9E75;color:white;">
@@ -2680,7 +2682,7 @@ window.savePickPDF = function() {
     filename: filename,
     html2canvas: { scale: scale, useCORS: true, logging: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css','legacy'], avoid: ['tr'] }
+    pagebreak: { mode: ['avoid-all','legacy'], avoid: ['tr','thead','tfoot'] }
   }).from(el).save().then(()=>{
     el.style.paddingTop = origPad;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
