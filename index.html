@@ -1420,6 +1420,12 @@ window.generatePickingList = function() {
     merged[k].qty += it.qty;
   }));
   const rows = Object.values(merged);
+  // 브랜드 → 모델번호 순 정렬
+  rows.sort((a,b) => {
+    const brandCmp = (a.brand||'').localeCompare(b.brand||'', 'ko');
+    if(brandCmp !== 0) return brandCmp;
+    return (a.modelNo||'').localeCompare(b.modelNo||'', 'ko', {numeric:true});
+  });
   const totalQty = rows.reduce((s,r)=>s+r.qty, 0);
   const totalAmt = rows.reduce((s,r)=>s+r.qty*r.price, 0);
 
