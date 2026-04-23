@@ -1546,7 +1546,7 @@ window.printPickingList = function() {
   const ci = window.companyInfo||{};
 
   const rowsHtml = rows.map((r,i) => `
-    <tr style="background:${i%2===0?'white':'#f9fafb'};">
+    <tr style="background:${i%2===0?'white':'#f9fafb'};page-break-inside:avoid;">
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.uid}</td>
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;font-weight:600;">${r.brand}</td>
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.modelNo}</td>
@@ -1568,7 +1568,7 @@ window.printPickingList = function() {
         </div>
       </div>
       <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;page-break-inside:auto;">
         <thead>
           <tr style="background:#1D9E75;color:white;">
             <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:14%;">고유번호</th>
@@ -1581,7 +1581,7 @@ window.printPickingList = function() {
         </thead>
         <tbody>${rowsHtml}</tbody>
         <tfoot>
-          <tr style="background:#f0faf6;border-top:2px solid #1D9E75;">
+          <tr style="background:#f0faf6;border-top:2px solid #1D9E75;page-break-inside:avoid;">
             <td colspan="4" style="padding:8px;border:1px solid #ddd;font-size:11pt;font-weight:700;">합&nbsp;&nbsp;&nbsp;&nbsp;계</td>
             <td style="padding:8px;border:1px solid #ddd;font-size:12pt;font-weight:700;text-align:center;color:#1D9E75;">${totalQty}</td>
             <td style="padding:8px;border:1px solid #ddd;"></td>
@@ -2674,12 +2674,13 @@ window.savePickPDF = function() {
   const origPad = el.style.paddingTop;
   el.style.paddingTop = '0';
   const rowCount = window.pickData.rows ? window.pickData.rows.length : 0;
-  const scale = rowCount > 100 ? 1 : 2; // 100개 이상이면 scale 1로 최적화
+  const scale = rowCount > 100 ? 1 : 2;
   html2pdf().set({
-    margin: [4,4,4,4],
+    margin: [10,4,10,4],
     filename: filename,
     html2canvas: { scale: scale, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css','legacy'], avoid: ['tr'] }
   }).from(el).save().then(()=>{
     el.style.paddingTop = origPad;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
