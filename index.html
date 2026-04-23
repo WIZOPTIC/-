@@ -257,6 +257,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="home-card-label">미수금</div>
       <div class="home-card-sub">잔액 조회</div>
     </div>
+    <div class="home-card orange" onclick="showPage('statement')">
+      <div class="home-card-icon">📄</div>
+      <div class="home-card-label">거래명세표</div>
+      <div class="home-card-sub">출력/이메일</div>
+    </div>
+    <div class="home-card teal" onclick="showPage('picking')">
+      <div class="home-card-icon">📦</div>
+      <div class="home-card-label">출고리스트</div>
+      <div class="home-card-sub">거래처별 판매내역</div>
+    </div>
     <div class="home-card teal" onclick="showPage('clients')">
       <div class="home-card-icon">🏢</div>
       <div class="home-card-label">거래처관리</div>
@@ -519,8 +529,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <span>입금 후 잔액</span><span id="previewAfter" style="color:#e53935;">₩0</span>
         </div>
       </div>
-      <button id="paymentSaveBtn" class="btn btn-primary" style="display:block;width:calc(100% + 32px);margin-top:14px;margin-left:-16px;font-size:17px;padding:16px;box-sizing:border-box;border-radius:0 0 12px 12px;" onclick="savePayment()">💳 입금 등록</button>
     </div>
+    <button id="paymentSaveBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;margin:0 12px;width:calc(100% - 24px);" onclick="savePayment()">💳 입금 등록</button>
   </div>
 </div>
 
@@ -2258,7 +2268,27 @@ window.openEditClientModal = function(id) {
 window.editClient = async function(id) {
   showLoading(true);
   try{
-    await updateDoc(doc(db,"clients",id),{name:document.getElementById('ec_name').value,bizNo:document.getElementById('ec_biz').value||'',ceo:document.getElementById('ec_ceo').value||'',city:document.getElementById('ec_city').value||'',phone:document.getElementById('ec_phone').value||'',mobile:document.getElementById('ec_mobile').value||'',address:document.getElementById('ec_address').value||'',email:document.getElementById('ec_email').value||'',arInit:parseInt(document.getElementById('ec_arInit').value)||0});
+    const newArInit = parseInt(document.getElementById('ec_arInit').value)||0;
+    // arInit 변경시 ar 재계산
+    const qAll = query(collection(db,'sales'), where('clientId','==',id));
+    const snapAll = await getDocs(qAll);
+    const allSales = snapAll.docs.map(d=>d.data());
+    const saleTotal = allSales.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+x.total,0);
+    const returnTotal = allSales.filter(x=>x.type==='return').reduce((a,x)=>a+x.total,0);
+    const payTotal = allSales.filter(x=>x.type==='payment').reduce((a,x)=>a+x.total,0);
+    const newAr = newArInit + saleTotal - returnTotal - payTotal;
+    await updateDoc(doc(db,"clients",id),{
+      name:document.getElementById('ec_name').value,
+      bizNo:document.getElementById('ec_biz').value||'',
+      ceo:document.getElementById('ec_ceo').value||'',
+      city:document.getElementById('ec_city').value||'',
+      phone:document.getElementById('ec_phone').value||'',
+      mobile:document.getElementById('ec_mobile').value||'',
+      address:document.getElementById('ec_address').value||'',
+      email:document.getElementById('ec_email').value||'',
+      arInit:newArInit,
+      ar:newAr
+    });
     closeModalDirect(); alert('✅ 저장됐습니다!');
   }catch(e){alert('오류:'+e.message);}
   showLoading(false);
@@ -2371,6 +2401,7 @@ window.updatePaymentArInfo = function(clientId) {
   arEl.style.color = (client.ar||0) > 0 ? '#e53935' : '#1D9E75';
   arInfo.style.display = 'block';
   inputArea.style.display = 'block';
+  saveBtn.style.display = 'block';
   document.getElementById('paymentAmt').value = '';
   document.getElementById('paymentPreview').style.display = 'none';
 };
