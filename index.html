@@ -2311,17 +2311,23 @@ window.deleteSale = async function(id) {
   if(!confirm(`${s.date} ${s.clientName} ${tLabel[s.type]||'매출'} ${fmt(s.total)}\n이 내역을 삭제할까요?`)) return;
   showLoading(true);
   try {
+    // 전표 먼저 삭제
+    await deleteDoc(doc(db,'sales',id));
+
+    // 삭제 후 Firebase에서 해당 거래처 전표 전체 재조회해서 AR 정확히 재계산
     const client = window.dbClients.find(c=>c.id===s.clientId);
     if(client) {
-      let arDelta = 0;
-      if(s.type==='sale'||!s.type) arDelta = -s.total;
-      else if(s.type==='return') arDelta = s.total;
-      else if(s.type==='payment') arDelta = s.total;
-      await updateDoc(doc(db,'clients',s.clientId),{ar: (client.ar||0)+arDelta});
+      const qAll = query(collection(db,'sales'), where('clientId','==',s.clientId));
+      const snapAll = await getDocs(qAll);
+      const allSales = snapAll.docs.map(d=>d.data());
+      const saleTotal = allSales.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+x.total,0);
+      const returnTotal = allSales.filter(x=>x.type==='return').reduce((a,x)=>a+x.total,0);
+      const payTotal = allSales.filter(x=>x.type==='payment').reduce((a,x)=>a+x.total,0);
+      const newAr = (client.arInit||0) + saleTotal - returnTotal - payTotal;
+      await updateDoc(doc(db,'clients',s.clientId),{ar: newAr});
     }
-    await deleteDoc(doc(db,'sales',id));
+
     closeModalDirect();
-    // 캐시 초기화 후 강제 재조회
     window.salesRange={from:null,to:null};
     const startEl=document.getElementById('ledgerStart');
     const endEl=document.getElementById('ledgerEnd');
