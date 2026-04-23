@@ -379,7 +379,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="paymentSection" style="display:none;">
       <div style="margin:10px 12px;background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
         <div class="field-label">입금액 (원)</div>
-        <input class="input-field" id="paymentAmt" type="number" placeholder="입금액 입력"
+        <input class="input-field" id="salePaymentAmt" type="number" placeholder="입금액 입력"
           style="margin-bottom:0;" oninput="renderSessionSummary()" />
       </div>
     </div>
@@ -503,7 +503,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- 입금액 -->
     <div id="paymentInputArea" style="display:none;background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금액</div>
-      <input type="text" inputmode="numeric" id="paymentAmt" class="field-input" placeholder="입금액 입력" style="margin-bottom:8px;" oninput="updatePaymentPreview()">
+      <input type="text" inputmode="numeric" id="paymentAmt" class="field-input" placeholder="입금액 입력" style="margin-bottom:8px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">메모 (선택)</div>
       <input type="text" id="paymentMemo" class="field-input" placeholder="메모" style="margin-bottom:0;">
       <!-- 입금 후 잔액 미리보기 -->
@@ -519,8 +519,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <span>입금 후 잔액</span><span id="previewAfter" style="color:#e53935;">₩0</span>
         </div>
       </div>
+      <button id="paymentSaveBtn" class="btn btn-primary" style="width:100%;margin-top:14px;font-size:17px;padding:16px;" onclick="savePayment()">💳 입금 등록</button>
     </div>
-    <button id="paymentSaveBtn" style="display:none;font-size:17px;padding:17px;width:100%;margin-top:4px;" class="btn btn-primary" onclick="savePayment()">💳 입금 등록</button>
   </div>
 </div>
 
@@ -841,8 +841,7 @@ window.showPage = function(name) {
     document.getElementById('paymentClientId').value='';
     document.getElementById('paymentArInfo').style.display='none';
     document.getElementById('paymentInputArea').style.display='none';
-    document.getElementById('paymentSaveBtn').style.display='none';
-    document.getElementById('paymentAmt').value='';
+        document.getElementById('salePaymentAmt').value='';
     document.getElementById('paymentMemo').value='';
     document.getElementById('paymentPreview').style.display='none';
   }
@@ -1254,7 +1253,7 @@ window.renderSessionSummary = function() {
   if(!wrap) return;
   const saleTotal=window.cart.reduce((s,x)=>s+x.qty*x.price,0);
   const returnTotal=window.returnCart.reduce((s,x)=>s+x.qty*x.price,0);
-  const payAmt=parseInt(document.getElementById('paymentAmt')?.value)||0;
+  const payAmt=parseInt(document.getElementById('salePaymentAmt')?.value)||0;
   const hasData=saleTotal>0||returnTotal>0||payAmt>0;
   wrap.style.display=hasData?'block':'none';
   if(saveBtn) saveBtn.style.display=hasData?'block':'none';
@@ -1277,7 +1276,7 @@ window.saveSession = async function() {
   if(!date){showToast('날짜를 선택해주세요','#e53935');return;}
   const hasSale=window.cart.length>0;
   const hasReturn=window.returnCart.length>0;
-  const payAmt=parseInt(document.getElementById('paymentAmt').value)||0;
+  const payAmt=parseInt(document.getElementById('salePaymentAmt').value)||0;
   if(!hasSale&&!hasReturn&&!payAmt){showToast('등록할 내용이 없습니다','#888');return;}
   const client=window.dbClients.find(c=>c.id===clientId);
   if(!client){showToast('거래처를 찾을 수 없습니다','#e53935');return;}
@@ -1307,7 +1306,7 @@ window.saveSession = async function() {
     // ✅ 저장 후 전체 초기화 (거래처·날짜·카트 모두 리셋)
     window.salesRange={from:'',to:''};
     window.cart=[];window.returnCart=[];
-    document.getElementById('paymentAmt').value='';
+    document.getElementById('salePaymentAmt').value='';
     // 거래처 선택 초기화
     document.getElementById('clientSearchInput').value='';
     document.getElementById('clientSelect').value='';
@@ -1327,7 +1326,7 @@ window.saveSession = async function() {
 
 window.clearSession = function() {
   window.cart=[];window.returnCart=[];
-  document.getElementById('paymentAmt').value='';
+  document.getElementById('salePaymentAmt').value='';
   renderCart();renderReturnCart();renderSessionSummary();
 };
 
@@ -2372,7 +2371,6 @@ window.updatePaymentArInfo = function(clientId) {
   arEl.style.color = (client.ar||0) > 0 ? '#e53935' : '#1D9E75';
   arInfo.style.display = 'block';
   inputArea.style.display = 'block';
-  saveBtn.style.display = 'block';
   document.getElementById('paymentAmt').value = '';
   document.getElementById('paymentPreview').style.display = 'none';
 };
@@ -2396,8 +2394,9 @@ window.updatePaymentPreview = function() {
 window.savePayment = async function() {
   const clientId = document.getElementById('paymentClientId').value;
   const client = window.dbClients.find(c=>c.id===clientId);
-  const amtRaw = document.getElementById('paymentAmt').value.toString().replace(/,/g,'').trim();
-  const amt = Math.floor(parseFloat(amtRaw)||0);
+  const amtEl = document.getElementById('paymentAmt');
+  const amtRaw = (amtEl.value||'').replace(/[^0-9]/g,'').trim();
+  const amt = amtRaw ? parseInt(amtRaw, 10) : 0;
   const date = document.getElementById('paymentDate').value;
   const memo = document.getElementById('paymentMemo').value.trim();
   if(!clientId || !client) { alert('거래처를 선택해주세요.'); return; }
