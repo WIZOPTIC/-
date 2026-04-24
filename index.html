@@ -132,7 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 .bar-wrap{padding:0 12px 8px;}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.bar-label{font-size:12px;color:#666;width:58px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-label{font-size:12px;color:#666;width:120px;text-align:left;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bar-track{flex:1;height:22px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
 .bar-fill{height:100%;background:#1D9E75;border-radius:4px;display:flex;align-items:center;padding-left:6px;min-width:30px;}
 .bar-val{font-size:11px;color:white;font-weight:600;}
@@ -2094,12 +2094,13 @@ window.renderStats = async function() {
   const rate=totalSales>0?Math.round(profit/totalSales*100):0;
   const totalQty=filtered.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+i.qty,0),0)-filteredReturn.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+i.qty,0),0);
   const totalAR=window.dbClients.reduce((s,c)=>s+(c.ar||0),0);
+  const totalPayment=window.dbSales.filter(x=>x.type==='payment').reduce((s,x)=>s+x.total,0);
   document.getElementById('statsGrid').innerHTML=
     '<div class="stat-card" style="text-align:right;"><div class="stat-label">매출</div><div class="stat-value green">'+fmtShort(totalSales)+'</div><div class="stat-sub">'+filtered.length+'건</div></div>'+
-    '<div class="stat-card" style="text-align:right;"><div class="stat-label">원가</div><div class="stat-value red">'+fmtShort(totalCost)+'</div></div>'+
     '<div class="stat-card" style="text-align:right;"><div class="stat-label">매출이익</div><div class="stat-value blue">'+fmtShort(profit)+'</div><div class="stat-sub">이익률 '+rate+'%</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">입금</div><div class="stat-value green">'+fmtShort(totalPayment)+'</div></div>'+
     '<div class="stat-card" style="text-align:right;"><div class="stat-label">미수금</div><div class="stat-value red">'+fmtShort(totalAR)+'</div></div>'+
-    '<div class="stat-card" style="text-align:right;"><div class="stat-label">판매수량</div><div class="stat-value">'+totalQty.toLocaleString()+'개</div></div>'+
+    '<div class="stat-card" style="text-align:right;"><div class="stat-label">원가</div><div class="stat-value red">'+fmtShort(totalCost)+'</div></div>'+
     '<div class="stat-card" style="text-align:right;"><div class="stat-label">마진율</div><div class="stat-value blue">'+rate+'%</div><div class="stat-sub">이익 '+fmtShort(profit)+'</div></div>';
   // 거래처별 매출 TOP5
   const byC={};
@@ -2107,7 +2108,7 @@ window.renderStats = async function() {
   const sortedC=Object.entries(byC).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const maxC=sortedC[0]?.[1]||1;
   document.getElementById('statsBar').innerHTML=sortedC.length?
-    sortedC.map(([name,val])=>'<div class="bar-row"><div class="bar-label">'+name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/maxC*100)+'%"><span class="bar-val">'+fmtShort(val)+'</span></div></div></div>').join(''):
+    sortedC.map(([name,val])=>'<div class="bar-row"><div class="bar-label">'+name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/maxC*70)+'%"><span class="bar-val">'+fmtShort(val)+'</span></div></div></div>').join(''):
     '<div style="padding:12px 16px;color:#aaa;font-size:13px;">데이터 없음</div>';
   // 브랜드별 판매수량
   const byBrand={};
@@ -2119,7 +2120,7 @@ window.renderStats = async function() {
   const maxB=sortedB[0]?.[1]||1;
   const bqEl=document.getElementById('statsBrandQty');
   if(bqEl) bqEl.innerHTML=sortedB.length?
-    sortedB.map(([name,qty])=>'<div class="bar-row"><div class="bar-label">'+name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(qty/maxB*100)+'%;background:#1976D2;"><span class="bar-val">'+qty+'개</span></div></div></div>').join(''):
+    sortedB.map(([name,qty])=>'<div class="bar-row"><div class="bar-label">'+name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(qty/maxB*70)+'%;background:#1976D2;"><span class="bar-val">'+qty+'개</span></div></div></div>').join(''):
     '<div style="padding:12px 16px;color:#aaa;font-size:13px;">데이터 없음</div>';
   // 상품별 판매순위 (브랜드+모델+컬러별)
   const byP={};
