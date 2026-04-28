@@ -829,8 +829,13 @@ window.showHome = function() {
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.style.display='none');
   document.getElementById('home').style.display='flex';
   document.getElementById('home').style.flexDirection='column';
-  // 홈으로 나가면 세션 초기화
   if(typeof clearSession==='function') clearSession();
+  // 열려있는 모달 닫기
+  const m=document.getElementById('modalArea');
+  if(m&&m.innerHTML.trim()) m.innerHTML='';
+  // 히스토리를 홈 기준으로 정리 (뒤로가기 → 종료 팝업이 뜨도록)
+  history.replaceState({page:'home'},'');
+  history.pushState({page:'home'},'');
 };
 window.showPage = function(name) {
   document.getElementById('home').style.display='none';
@@ -1901,18 +1906,19 @@ window.openQuickPaymentModal = function(clientId) {
             <span>현재 미수금</span><span>${fmt(c.ar||0)}</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:13px;color:#1D9E75;margin-bottom:4px;">
-            <span>입금액</span><span id="qpPreviewPay">₩0</span>
+            <span>입금액</span><span id="qpPreviewPay">&#8361;0</span>
           </div>
           <div style="height:1px;background:#ddd;margin:6px 0;"></div>
           <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;">
-            <span>입금 후 잔액</span><span id="qpPreviewAfter" style="color:#e53935;">₩0</span>
+            <span>입금 후 잔액</span><span id="qpPreviewAfter" style="color:#e53935;">&#8361;0</span>
           </div>
         </div>
         <div class="field-label">메모 (선택)</div>
         <input type="text" class="field-input" id="qpMemo" placeholder="메모">
-        <button class="btn btn-primary" style="margin:8px 0 0;" onclick="saveQuickPayment('${clientId}')">💳 입금 등록</button>
+        <button class="btn btn-primary" style="margin:8px 0 0;" onclick="saveQuickPayment('${clientId}')">&#x1F4B3; 입금 등록</button>
       </div>
     </div>`;
+  history.pushState({page:'modal'},'');
   setTimeout(()=>{ const el=document.getElementById('qpAmt'); if(el) el.focus(); }, 200);
 };
 
