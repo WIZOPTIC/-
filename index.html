@@ -1403,13 +1403,41 @@ window.renderLedger = async function() {
       </div>`).join('')+'</div>';
   } else if(tab==='byClient'){
     const byC={};
-    salesOnly.forEach(s=>{if(!byC[s.clientName])byC[s.clientName]={total:0,qty:0,cost:0};byC[s.clientName].total+=s.total;byC[s.clientName].qty+=s.items.reduce((a,x)=>a+x.qty,0);byC[s.clientName].cost+=(s.cost||0);});
+    filtered.forEach(s=>{
+      const key=s.clientName||'(미상)';
+      if(!byC[key]) byC[key]={clientId:s.clientId,sales:0,returns:0,payments:0,qty:0};
+      if(s.type==='sale'||!s.type){byC[key].sales+=s.total;byC[key].qty+=(s.items||[]).reduce((a,x)=>a+x.qty,0);}
+      else if(s.type==='return'){byC[key].returns+=s.total;}
+      else if(s.type==='payment'){byC[key].payments+=s.total;}
+    });
     el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      Object.entries(byC).sort((a,b)=>b[1].total-a[1].total).map(([name,v])=>`
-      <div class="sale-item">
-        <div class="sale-top"><span class="sale-company">${name}</span><span class="sale-amount" style="color:#1D9E75;">${fmt(v.total)}</span></div>
-        <div class="sale-bottom"><span class="sale-meta">${v.qty}개 · 이익 ${fmt(v.total-v.cost)}</span><span class="badge badge-sale">${Math.round((v.total-v.cost)/v.total*100)||0}%</span></div>
-      </div>`).join('')+'</div>';
+      Object.entries(byC).sort((a,b)=>(b[1].sales-b[1].returns)-(a[1].sales-a[1].returns)).map(([name,v],i,arr)=>{
+        const net=v.sales-v.returns;
+        const bal=net-v.payments;
+        const balColor=bal>0?'#e53935':bal<0?'#1976D2':'#1D9E75';
+        const balLabel=bal>0?'미수':bal<0?'선입금':'완납';
+        return `<div class="sale-item" style="cursor:pointer;${i<arr.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
+          <div class="sale-top" style="margin-bottom:8px;">
+            <span class="sale-company">${name}</span>
+            <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:${bal>0?'#fff5f5':bal<0?'#e3f2fd':'#e8f5e9'};color:${balColor};">${balLabel}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:8px;">
+            <div style="text-align:center;padding:10px 4px;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">순매출</div>
+              <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
+            </div>
+            <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">입금</div>
+              <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
+            </div>
+            <div style="text-align:center;padding:10px 4px;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">${bal>=0?'미수':'선입금'}</div>
+              <div style="font-size:13px;font-weight:700;color:${balColor};">${fmtShort(Math.abs(bal))}</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)}${v.returns>0?' · 반품 '+fmtShort(v.returns):''} · ${v.qty}개 &nbsp;▸ 상세보기</div>
+        </div>`;
+      }).join('')+'</div>';
   } else if(tab==='byProduct'){
     const byP={};
     salesOnly.forEach(s=>s.items.forEach(it=>{const k=it.brand||it.name;if(!byP[k])byP[k]={qty:0,total:0};byP[k].qty+=it.qty;byP[k].total+=it.qty*it.price;}));
@@ -1420,6 +1448,32 @@ window.renderLedger = async function() {
         <div class="sale-bottom"><span class="sale-meta">총 ${v.qty}개 판매</span></div>
       </div>`).join('')+'</div>';
   }
+};
+
+window.showClientPeriodDetail = function(clientId, clientName, from, to) {
+  const txs = window.dbSales.filter(s=>(s.clientId===clientId||s.clientName===clientName)&&s.date>=from&&s.date<=to)
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.timestamp||'').localeCompare(a.timestamp||''));
+  const tColor={sale:'#1D9E75',payment:'#1976D2',return:'#e53935'};
+  const tLabel={sale:'매출',payment:'입금',return:'반품'};
+  document.getElementById('modalArea').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto;">
+        <button class="modal-close" onclick="closeModalDirect()">×</button>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${clientName}</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:14px;">${from} ~ ${to}</div>
+        ${txs.length?txs.map((s,i)=>`
+          <div style="padding:13px 0;${i<txs.length-1?'border-bottom:1px solid #f5f5f5;':''}display:flex;align-items:center;gap:10px;cursor:pointer;"
+            onclick="closeModalDirect();setTimeout(()=>showSaleDetail('${s.id}'),80)">
+            <span class="badge badge-${s.type||'sale'}" style="flex-shrink:0;">${tLabel[s.type]||'매출'}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;color:#888;">${s.date}${s.type!=='payment'?' · '+(s.items||[]).reduce((a,x)=>a+x.qty,0)+'개':s.memo?' · '+s.memo:''}</div>
+            </div>
+            <span style="font-size:15px;font-weight:700;color:${tColor[s.type||'sale']};white-space:nowrap;">${s.type==='return'?'−':''}${fmt(s.total)}</span>
+          </div>`).join('')
+        :'<div style="text-align:center;padding:24px;color:#bbb;">거래 내역 없음</div>'}
+      </div>
+    </div>`;
+  history.pushState({page:'modal'},'');
 };
 
 window.switchLedgerTab = function(el, tab) {
