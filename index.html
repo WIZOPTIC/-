@@ -487,7 +487,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="back-btn" onclick="showHome()">←</button>
     <span class="page-title">입금관리</span>
   </div>
-  <div style="padding:12px;">
+  <div style="padding:12px;flex:1;overflow-y:auto;padding-bottom:24px;">
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금일자</div>
       <input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;">
@@ -531,6 +531,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <button id="paymentSaveBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;margin:0 12px;width:calc(100% - 24px);" onclick="savePayment()">💳 입금 등록</button>
+
+    <!-- 월별 입금내역 -->
+    <div style="margin-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 8px;">
+        <button onclick="changePaymentMonth(-1)" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1D9E75;padding:6px 10px;line-height:1;">&#9664;</button>
+        <span id="paymentHistoryTitle" style="font-size:15px;font-weight:700;color:#222;"></span>
+        <button onclick="changePaymentMonth(1)" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1D9E75;padding:6px 10px;line-height:1;">&#9654;</button>
+      </div>
+      <div style="background:#1D9E75;border-radius:12px;padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:rgba(255,255,255,0.85);">총 입금액</span>
+        <span id="paymentHistoryTotal" style="font-size:20px;font-weight:700;color:white;">&#8361;0</span>
+      </div>
+      <div id="paymentHistoryList" style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);min-height:48px;"></div>
+    </div>
   </div>
 </div>
 
@@ -851,9 +865,13 @@ window.showPage = function(name) {
     document.getElementById('paymentClientId').value='';
     document.getElementById('paymentArInfo').style.display='none';
     document.getElementById('paymentInputArea').style.display='none';
-        document.getElementById('salePaymentAmt').value='';
+    document.getElementById('paymentSaveBtn').style.display='none';
     document.getElementById('paymentMemo').value='';
     document.getElementById('paymentPreview').style.display='none';
+    const now=new Date();
+    window._pmYear=now.getFullYear();
+    window._pmMonth=now.getMonth();
+    renderPaymentHistory();
   }
   if(name==='statement'){
     document.getElementById('stmtDate').value=td;
@@ -1840,6 +1858,111 @@ window.emailPickingList = function() {
 };
 
 // 미수금
+// ===== 미수금 길게 누르기 - 빠른 입금 =====
+window._arLpTimer = null;
+window._arLpFired = false;
+
+window.startArLongPress = function(e, clientId) {
+  window._arLpFired = false;
+  window._arLpTimer = setTimeout(function(){
+    window._arLpFired = true;
+    if(navigator.vibrate) navigator.vibrate(60);
+    openQuickPaymentModal(clientId);
+  }, 600);
+};
+
+window.cancelArLongPress = function(e) {
+  clearTimeout(window._arLpTimer);
+};
+
+window.openQuickPaymentModal = function(clientId) {
+  const c = window.dbClients.find(x=>x.id===clientId);
+  if(!c) return;
+  const today = getKSTDate();
+  const arColor = (c.ar||0) > 0 ? '#e53935' : (c.ar||0) < 0 ? '#1976D2' : '#aaa';
+  document.getElementById('modalArea').innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="position:relative;z-index:201;">
+        <button class="modal-close" onclick="closeModalDirect()">×</button>
+        <div class="modal-title">💳 빠른 입금 등록</div>
+        <div style="background:#f0faf6;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#222;">${c.name}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">현재 미수금</div>
+          </div>
+          <div style="font-size:22px;font-weight:700;color:${arColor};">${fmt(c.ar||0)}</div>
+        </div>
+        <div class="field-label">입금일자</div>
+        <input type="date" class="field-input" id="qpDate" value="${today}">
+        <div class="field-label">입금액</div>
+        <input type="text" inputmode="numeric" class="field-input" id="qpAmt" placeholder="입금액 입력"
+          oninput="updateQPPreview('${clientId}')">
+        <div id="qpPreview" style="display:none;background:#f5f5f5;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:4px;">
+            <span>현재 미수금</span><span>${fmt(c.ar||0)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#1D9E75;margin-bottom:4px;">
+            <span>입금액</span><span id="qpPreviewPay">₩0</span>
+          </div>
+          <div style="height:1px;background:#ddd;margin:6px 0;"></div>
+          <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;">
+            <span>입금 후 잔액</span><span id="qpPreviewAfter" style="color:#e53935;">₩0</span>
+          </div>
+        </div>
+        <div class="field-label">메모 (선택)</div>
+        <input type="text" class="field-input" id="qpMemo" placeholder="메모">
+        <button class="btn btn-primary" style="margin:8px 0 0;" onclick="saveQuickPayment('${clientId}')">💳 입금 등록</button>
+      </div>
+    </div>`;
+  setTimeout(()=>{ const el=document.getElementById('qpAmt'); if(el) el.focus(); }, 200);
+};
+
+window.updateQPPreview = function(clientId) {
+  const c = window.dbClients.find(x=>x.id===clientId);
+  if(!c) return;
+  const amt = parseInt((document.getElementById('qpAmt').value||'').replace(/[^0-9]/g,''))||0;
+  const prev = document.getElementById('qpPreview');
+  if(amt <= 0){ prev.style.display='none'; return; }
+  const after = (c.ar||0) - amt;
+  document.getElementById('qpPreviewPay').textContent = fmt(amt);
+  const afterEl = document.getElementById('qpPreviewAfter');
+  afterEl.textContent = fmt(after);
+  afterEl.style.color = after > 0 ? '#e53935' : after < 0 ? '#1976D2' : '#1D9E75';
+  prev.style.display = 'block';
+};
+
+window.saveQuickPayment = async function(clientId) {
+  const c = window.dbClients.find(x=>x.id===clientId);
+  if(!c) return;
+  const amtRaw = (document.getElementById('qpAmt').value||'').replace(/[^0-9]/g,'');
+  const amt = amtRaw ? parseInt(amtRaw) : 0;
+  const date = document.getElementById('qpDate').value;
+  const memo = document.getElementById('qpMemo').value.trim();
+  if(!amt || amt <= 0){ alert('입금액을 입력해주세요.'); return; }
+  if(!date){ alert('날짜를 선택해주세요.'); return; }
+  showLoading(true);
+  try {
+    const saleId = `pay_${Date.now()}`;
+    await setDoc(doc(db,'sales',saleId),{
+      type:'payment', clientId, clientName:c.name,
+      date, total:amt, memo, timestamp:new Date().toISOString(), items:[]
+    });
+    const qAll = query(collection(db,'sales'), where('clientId','==',clientId));
+    const snapAll = await getDocs(qAll);
+    const allS = snapAll.docs.map(d=>d.data());
+    const newAr = (c.arInit||0)
+      + allS.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+(x.total||0),0)
+      - allS.filter(x=>x.type==='return').reduce((a,x)=>a+(x.total||0),0)
+      - allS.filter(x=>x.type==='payment').reduce((a,x)=>a+(x.total||0),0);
+    await updateDoc(doc(db,'clients',clientId),{ar:newAr});
+    c.ar = newAr;
+    closeModalDirect();
+    showToast(`✅ ${c.name} 입금 ${fmt(amt)} 완료!`);
+    renderAR();
+  } catch(e){ alert('오류: '+e.message); }
+  showLoading(false);
+};
+
 window.renderAR = function(filter='') {
   const allC=window.dbClients.filter(c=>!filter||c.name.includes(filter));
   // client.ar = 현재 잔액 (항상 최신)
@@ -1864,7 +1987,7 @@ window.renderAR = function(filter='') {
     const badgeBg=isMinus?'#e3f2fd':isZero?'#f5f5f5':'#fff5f5';
     const badgeColor=isMinus?'#1976D2':isZero?'#999':'#e53935';
     const badgeText=isMinus?'💙 선입금':isZero?'✅ 완납':'💸 미수';
-    return `<div class="ar-item" onclick="showARDetail('${c.id}')">`+
+    return `<div class="ar-item" onclick="showARDetail('${c.id}')" ontouchstart="startArLongPress(event,'${c.id}')" ontouchend="cancelArLongPress(event)" ontouchmove="cancelArLongPress(event)">`+
     '<div class="ar-top">'+
       '<div>'+
         '<div class="ar-company">'+c.name+'</div>'+
@@ -1881,6 +2004,7 @@ window.renderAR = function(filter='') {
       '<span>초기미수: '+fmt(initial)+'</span>'+
       '<span style="color:#1D9E75;font-weight:500;">원장 보기 →</span>'+
     '</div>'+
+    '<div style="font-size:10px;color:#ccc;text-align:right;margin-top:4px;">💳 길게 눌러 입금</div>'+
     '</div>';
   }).join(''):
     '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-text">거래처가 없습니다</div></div>';
@@ -1888,6 +2012,7 @@ window.renderAR = function(filter='') {
 
 // 거래처 원장 (날짜별 매출/입금/잔금)
 window.showARDetail = function(clientId) {
+  if(window._arLpFired){window._arLpFired=false;return;}
   const c=window.dbClients.find(x=>x.id===clientId);
   if(!c)return;
   const today=getKSTDate();       // ✅ 한국시간 오늘
@@ -2392,6 +2517,57 @@ window.editProduct = async function(id) {
   showLoading(false);
 };
 
+// ===== 월별 입금내역 =====
+window._pmYear = new Date().getFullYear();
+window._pmMonth = new Date().getMonth();
+
+window.changePaymentMonth = function(dir) {
+  let m = window._pmMonth + dir;
+  let y = window._pmYear;
+  if(m < 0) { m = 11; y--; }
+  if(m > 11) { m = 0; y++; }
+  window._pmMonth = m;
+  window._pmYear = y;
+  renderPaymentHistory();
+};
+
+window.renderPaymentHistory = async function() {
+  const y = window._pmYear;
+  const m = window._pmMonth;
+  const titleEl = document.getElementById('paymentHistoryTitle');
+  const totalEl = document.getElementById('paymentHistoryTotal');
+  const listEl = document.getElementById('paymentHistoryList');
+  if(!titleEl || !listEl) return;
+  titleEl.textContent = `${y}년 ${m+1}월 입금내역`;
+  const from = `${y}-${String(m+1).padStart(2,'0')}-01`;
+  const lastDay = new Date(y, m+1, 0).getDate();
+  const to = `${y}-${String(m+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  listEl.innerHTML = '<div style="padding:18px;text-align:center;color:#bbb;font-size:13px;">불러오는 중...</div>';
+  try {
+    const q = query(collection(db,'sales'), where('date','>=',from), where('date','<=',to));
+    const snap = await getDocs(q);
+    const payments = snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.type==='payment');
+    payments.sort((a,b)=>b.date.localeCompare(a.date)||((b.timestamp||'').localeCompare(a.timestamp||'')));
+    const total = payments.reduce((s,x)=>s+(x.total||0),0);
+    totalEl.textContent = fmt(total);
+    if(!payments.length) {
+      listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#bbb;font-size:13px;">📭 입금 내역이 없습니다</div>';
+      return;
+    }
+    listEl.innerHTML = payments.map((p,i)=>`
+      <div style="display:flex;align-items:center;padding:13px 16px;${i<payments.length-1?'border-bottom:1px solid #f5f5f5;':''}">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.clientName||''}</div>
+          <div style="font-size:11px;color:#aaa;margin-top:2px;">${p.date}${p.memo?' · '+p.memo:''}</div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#1976D2;margin-left:10px;white-space:nowrap;">${fmt(p.total||0)}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="padding:16px;color:#e53935;font-size:13px;text-align:center;">오류: ${e.message}</div>`;
+  }
+};
+
 // ===== 입금관리 =====
 window.updatePaymentArInfo = function(clientId) {
   const client = window.dbClients.find(c=>c.id===clientId);
@@ -2461,6 +2637,7 @@ window.savePayment = async function() {
     document.getElementById('paymentMemo').value = '';
     document.getElementById('paymentPreview').style.display = 'none';
     showToast(`✅ 입금 ${fmt(amt)} 등록 완료!`);
+    renderPaymentHistory();
   } catch(e) { alert('오류: '+e.message); }
   showLoading(false);
 };
