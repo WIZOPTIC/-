@@ -830,12 +830,8 @@ window.showHome = function() {
   document.getElementById('home').style.display='flex';
   document.getElementById('home').style.flexDirection='column';
   if(typeof clearSession==='function') clearSession();
-  // 열려있는 모달 닫기
   const m=document.getElementById('modalArea');
   if(m&&m.innerHTML.trim()) m.innerHTML='';
-  // 히스토리를 홈 기준으로 정리 (뒤로가기 → 종료 팝업이 뜨도록)
-  history.replaceState({page:'home'},'');
-  history.pushState({page:'home'},'');
 };
 window.showPage = function(name) {
   document.getElementById('home').style.display='none';
@@ -918,7 +914,7 @@ window.showExitConfirm = function() {
 };
 window.addEventListener('popstate',function(){
   const m=document.getElementById('modalArea');
-  if(m&&m.innerHTML.trim()){closeModalDirect();history.pushState({page:'modal'},'');return;}
+  if(m&&m.innerHTML.trim()){closeModalDirect();const ap=document.querySelector('[id^="page-"][style*="flex"]');history.pushState({page:ap?ap.id.replace('page-',''):'home'},'');return;}
   const active=document.querySelector('[id^="page-"][style*="flex"]');
   if(active){showHome();history.replaceState({page:'home'},'');history.pushState({page:'home'},'');return;}
   // 홈에서 뒤로가기 → 종료 팝업
