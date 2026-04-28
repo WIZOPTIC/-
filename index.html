@@ -420,8 +420,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button style="padding:0 12px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;" onclick="renderLedger()">조회</button>
     </div>
     <div class="filter-row" id="ledgerTabs">
-      <div class="chip active" onclick="switchLedgerTab(this,'all')">전체</div>
-      <div class="chip" onclick="switchLedgerTab(this,'byDate')">일자별</div>
+      <div class="chip active" onclick="switchLedgerTab(this,'byDate')">일자별</div>
       <div class="chip" onclick="switchLedgerTab(this,'byClient')">업체별</div>
       <div class="chip" onclick="switchLedgerTab(this,'byProduct')">상품별</div>
     </div>
@@ -450,10 +449,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="bottom-tabs no-print">
     <button class="bottom-tab" onclick="showPage('sale')">+ 추가</button>
-    <button class="bottom-tab active" onclick="switchLedgerTab(document.querySelector('#ledgerTabs .chip.active'),'all')">전체</button>
-    <button class="bottom-tab" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[1],'byDate')">일자별</button>
-    <button class="bottom-tab" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[2],'byClient')">업체별</button>
-    <button class="bottom-tab" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[3],'byProduct')">상품별</button>
+    <button class="bottom-tab active" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[0],'byDate')">일자별</button>
+    <button class="bottom-tab" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[1],'byClient')">업체별</button>
+    <button class="bottom-tab" onclick="switchLedgerTab(document.querySelectorAll('#ledgerTabs .chip')[2],'byProduct')">상품별</button>
   </div>
 </div>
 
@@ -743,7 +741,7 @@ const db = getFirestore(app);
 
 window.dbClients=[]; window.dbProducts=[]; window.dbSales=[]; window.barcodeMap={};
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
-window.currentLedgerTab='all'; window.stmtData=null;
+window.currentLedgerTab='byDate'; window.stmtData=null;
 
 // 오늘 날짜
 const today = getKSTDate(); // ✅ 한국시간 오늘
@@ -1388,42 +1386,53 @@ window.renderLedger = async function() {
   if(!filtered.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">거래 기록이 없습니다</div></div>';return;}
   const tColor={sale:'#1D9E75',payment:'#1976D2',return:'#e53935'};
   const tLabel={sale:'매출',payment:'입금',return:'반품'};
-  if(tab==='all'||tab==='byDate'){
+  if(tab==='byDate'){
+    const byDC={};
+    filtered.forEach(s=>{
+      const key=s.date+'__'+(s.clientId||s.clientName);
+      if(!byDC[key]) byDC[key]={date:s.date,clientName:s.clientName,clientId:s.clientId,sales:0,returns:0,payments:0};
+      if(s.type==='sale'||!s.type) byDC[key].sales+=s.total;
+      else if(s.type==='return') byDC[key].returns+=s.total;
+      else if(s.type==='payment') byDC[key].payments+=s.total;
+    });
+    const rows=Object.values(byDC).filter(v=>v.sales>0||v.returns>0).sort((a,b)=>b.date.localeCompare(a.date)||a.clientName.localeCompare(b.clientName,'ko'));
     el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      filtered.map(s=>`
-      <div class="sale-item" onclick="showSaleDetail('${s.id}')">
-        <div class="sale-top">
-          <span class="sale-company">${s.clientName}</span>
-          <span class="sale-amount" style="color:${tColor[s.type||'sale']}">${s.type==='return'?'-':''}${fmt(s.total)}</span>
-        </div>
-        <div class="sale-bottom">
-          <span class="sale-meta">${s.date} · ${s.type==='payment'?'입금':s.items.reduce((a,x)=>a+x.qty,0)+'개'}</span>
-          <span class="badge badge-${s.type||'sale'}">${tLabel[s.type]||'매출'}</span>
-        </div>
-      </div>`).join('')+'</div>';
+      rows.map((v,i)=>{
+        const net=v.sales-v.returns;
+        const hasNet=v.sales>0||v.returns>0;
+        const netColor=net>=0?'#1D9E75':'#e53935';
+        const netTxt=`${net<0?'−':''}${fmt(Math.abs(net))}`;
+        return `<div style="display:flex;align-items:center;padding:13px 16px;${i<rows.length-1?'border-bottom:1px solid #f5f5f5;':''}gap:8px;cursor:pointer;"
+          onclick="showClientPeriodDetail('${v.clientId}','${v.clientName.replace(/'/g,"\\'")}','${v.date}','${v.date}')">
+          <span style="font-size:14px;font-weight:800;color:#1D9E75;flex-shrink:0;min-width:36px;">${v.date.slice(5)}</span>
+          <span style="flex:1;font-size:14px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.clientName}</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${hasNet?`<span style="font-size:14px;font-weight:700;color:${netColor};white-space:nowrap;">${netTxt}</span>`:''}          </div>
+        </div>`;
+      }).join('')+'</div>';
   } else if(tab==='byClient'){
     const byC={};
     filtered.forEach(s=>{
       const key=s.clientName||'(미상)';
       if(!byC[key]) byC[key]={clientId:s.clientId,sales:0,returns:0,payments:0,qty:0};
       if(s.type==='sale'||!s.type){byC[key].sales+=s.total;byC[key].qty+=(s.items||[]).reduce((a,x)=>a+x.qty,0);}
-      else if(s.type==='return'){byC[key].returns+=s.total;}
-      else if(s.type==='payment'){byC[key].payments+=s.total;}
+      else if(s.type==='return') byC[key].returns+=s.total;
+      else if(s.type==='payment') byC[key].payments+=s.total;
     });
     el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
       Object.entries(byC).sort((a,b)=>(b[1].sales-b[1].returns)-(a[1].sales-a[1].returns)).map(([name,v],i,arr)=>{
         const net=v.sales-v.returns;
-        const bal=net-v.payments;
-        const balColor=bal>0?'#e53935':bal<0?'#1976D2':'#1D9E75';
-        const balLabel=bal>0?'미수':bal<0?'선입금':'완납';
+        const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
+        const ar=client?(client.ar||0):(net-v.payments);
+        const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
         return `<div class="sale-item" style="cursor:pointer;${i<arr.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
           <div class="sale-top" style="margin-bottom:8px;">
             <span class="sale-company">${name}</span>
-            <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:${bal>0?'#fff5f5':bal<0?'#e3f2fd':'#e8f5e9'};color:${balColor};">${balLabel}</span>
+            <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:6px;">
             <div style="text-align:center;padding:10px 4px;">
-              <div style="font-size:10px;color:#888;margin-bottom:4px;">순매출</div>
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">매출</div>
               <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
             </div>
             <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
@@ -1431,11 +1440,11 @@ window.renderLedger = async function() {
               <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
             </div>
             <div style="text-align:center;padding:10px 4px;">
-              <div style="font-size:10px;color:#888;margin-bottom:4px;">${bal>=0?'미수':'선입금'}</div>
-              <div style="font-size:13px;font-weight:700;color:${balColor};">${fmtShort(Math.abs(bal))}</div>
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">미수</div>
+              <div style="font-size:13px;font-weight:700;color:${arColor};">${fmtShort(Math.abs(ar))}</div>
             </div>
           </div>
-          <div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)}${v.returns>0?' · 반품 '+fmtShort(v.returns):''} · ${v.qty}개 &nbsp;▸ 상세보기</div>
+          ${v.returns>0?`<div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)} · 반품 ${fmtShort(v.returns)} &nbsp;▸ 상세</div>`:`<div style="font-size:11px;color:#aaa;">▸ 상세보기</div>`}
         </div>`;
       }).join('')+'</div>';
   } else if(tab==='byProduct'){
@@ -1459,17 +1468,21 @@ window.showClientPeriodDetail = function(clientId, clientName, from, to) {
     <div class="modal-overlay" onclick="closeModal(event)">
       <div class="modal" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto;">
         <button class="modal-close" onclick="closeModalDirect()">×</button>
-        <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${clientName}</div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:4px;">${clientName}</div>
         <div style="font-size:12px;color:#aaa;margin-bottom:14px;">${from} ~ ${to}</div>
-        ${txs.length?txs.map((s,i)=>`
-          <div style="padding:13px 0;${i<txs.length-1?'border-bottom:1px solid #f5f5f5;':''}display:flex;align-items:center;gap:10px;cursor:pointer;"
+        ${txs.length?txs.map((s,i)=>{
+          const brands=[...new Set((s.items||[]).map(it=>it.brand||it.name||'').filter(Boolean))].join(', ');
+          const qty=(s.items||[]).reduce((a,x)=>a+x.qty,0);
+          return `<div style="padding:14px 0;${i<txs.length-1?'border-bottom:1px solid #f0f0f0;':''}display:flex;align-items:center;gap:10px;cursor:pointer;"
             onclick="closeModalDirect();setTimeout(()=>showSaleDetail('${s.id}'),80)">
-            <span class="badge badge-${s.type||'sale'}" style="flex-shrink:0;">${tLabel[s.type]||'매출'}</span>
+            <span class="badge badge-${s.type||'sale'}" style="flex-shrink:0;font-size:12px;">${tLabel[s.type]||'매출'}</span>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;color:#888;">${s.date}${s.type!=='payment'?' · '+(s.items||[]).reduce((a,x)=>a+x.qty,0)+'개':s.memo?' · '+s.memo:''}</div>
+              ${s.type!=='payment'&&brands?`<div style="font-size:14px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px;">${brands}</div>`:''}
+              <div style="font-size:13px;color:#aaa;">${s.date}${s.type!=='payment'?' · '+qty+'개':s.memo?' · '+s.memo:''}</div>
             </div>
-            <span style="font-size:15px;font-weight:700;color:${tColor[s.type||'sale']};white-space:nowrap;">${s.type==='return'?'−':''}${fmt(s.total)}</span>
-          </div>`).join('')
+            <span style="font-size:16px;font-weight:700;color:${tColor[s.type||'sale']};white-space:nowrap;">${s.type==='return'?'−':''}${fmt(s.total)}</span>
+          </div>`;
+        }).join('')
         :'<div style="text-align:center;padding:24px;color:#bbb;">거래 내역 없음</div>'}
       </div>
     </div>`;
