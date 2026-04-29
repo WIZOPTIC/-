@@ -1629,92 +1629,106 @@ window.generatePickingList = function() {
 
 window.printPickingList = function() {
   if(!window.pickData){alert('먼저 리스트를 생성해주세요'); return;}
-  const {client, date, rows, totalQty, totalAmt} = window.pickData;
+  const {client, date, rows, totalQty} = window.pickData;
   const ci = window.companyInfo||{};
 
-  const rowsHtml = rows.map((r,i) => `
-    <tr style="background:${i%2===0?'white':'#f9fafb'};">
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.uid}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;font-weight:600;">${r.brand}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.modelNo}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.color}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;text-align:center;font-weight:700;">${r.qty}</td>
-      <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;text-align:center;">□</td>
-    </tr>`).join('');
+  // A4 기준 행 수 계산: 1페이지 헤더 포함 약 28행, 이후 페이지 약 36행
+  const ROWS_P1 = 28;
+  const ROWS_PN = 36;
 
-  const printCSS = `
-    <style>
-      * { box-sizing: border-box; }
-      body { margin: 0; padding: 0; font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif; }
-      .pick-wrap { padding: 8mm 10mm; }
-      .pick-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4mm; }
-      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-      tbody { display: table-row-group; }
-      tr { break-inside: avoid; page-break-inside: avoid; }
-      td, th { word-break: break-word; }
-      @media print {
-        @page { margin: 10mm; size: A4 portrait; }
-        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .no-print { display: none !important; }
-        table { page-break-inside: auto; }
-        tr { break-inside: avoid; page-break-inside: avoid; }
-        thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
-      }
-    </style>`;
+  const pages = [];
+  let remaining = [...rows];
+  let pageNum = 0;
+  while(remaining.length > 0) {
+    const limit = pageNum === 0 ? ROWS_P1 : ROWS_PN;
+    pages.push(remaining.splice(0, limit));
+    pageNum++;
+  }
+  if(pages.length === 0) pages.push([]);
+
+  const headerHtml = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4mm;">
+      <div>
+        <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
+        <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;|&nbsp;${ci.tel||''}</div>
+      </div>
+      <div style="text-align:right;font-size:10pt;color:#444;">
+        <div>날짜: <strong>${date}</strong></div>
+        <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
+      </div>
+    </div>
+    <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>`;
+
+  const theadHtml = `
+    <thead>
+      <tr style="background:#1D9E75;color:white;">
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:left;width:14%;">고유번호</th>
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:left;width:24%;">브랜드</th>
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:left;width:18%;">모델번호</th>
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:left;width:14%;">컬러</th>
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:center;width:10%;">수량</th>
+        <th style="padding:6px 8px;border:1px solid #1D9E75;font-size:9pt;text-align:center;width:20%;">확인 ☑</th>
+      </tr>
+    </thead>`;
+
+  const makeRowsHtml = (pageRows, isLast) => {
+    let html = pageRows.map((r,i) => `
+      <tr style="background:${i%2===0?'white':'#f9fafb'};">
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;">${r.uid}</td>
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;font-weight:600;">${r.brand}</td>
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;">${r.modelNo}</td>
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;">${r.color}</td>
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;text-align:center;font-weight:700;">${r.qty}</td>
+        <td style="padding:5px 8px;border:1px solid #ddd;font-size:9pt;text-align:center;">□</td>
+      </tr>`).join('');
+    if(isLast) {
+      html += `
+        <tr style="background:#f0faf6;">
+          <td colspan="4" style="padding:8px;border:1px solid #ddd;font-size:11pt;font-weight:700;">합&nbsp;&nbsp;&nbsp;&nbsp;계</td>
+          <td style="padding:8px;border:1px solid #ddd;font-size:12pt;font-weight:700;text-align:center;color:#1D9E75;">${totalQty}</td>
+          <td style="padding:8px;border:1px solid #ddd;"></td>
+        </tr>`;
+    }
+    return html;
+  };
+
+  const pagesHtml = pages.map((pageRows, pi) => {
+    const isLast = pi === pages.length - 1;
+    const isFirst = pi === 0;
+    return `
+      <div style="width:190mm;min-height:267mm;padding:8mm 10mm;box-sizing:border-box;background:white;font-family:'Malgun Gothic','맑은 고딕',Arial,sans-serif;page-break-after:${isLast?'auto':'always'};">
+        ${isFirst ? headerHtml : `<div style="font-size:10pt;color:#aaa;margin-bottom:3mm;">${client.name} 귀하 (계속 ${pi+1}/${pages.length})</div>`}
+        <table style="width:100%;border-collapse:collapse;">
+          ${theadHtml}
+          <tbody>${makeRowsHtml(pageRows, isLast)}</tbody>
+        </table>
+        <div style="margin-top:4mm;display:flex;justify-content:space-between;font-size:8pt;color:#aaa;border-top:1px solid #eee;padding-top:2mm;">
+          <div>${ci.addr||''}</div>
+          <div>${pi+1} / ${pages.length}</div>
+        </div>
+      </div>`;
+  }).join('');
 
   const html = `
-    ${printCSS}
-    <div class="pick-wrap">
-      <div class="pick-header">
-        <div>
-          <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
-          <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;${ci.tel||''}</div>
-        </div>
-        <div style="text-align:right;font-size:10pt;color:#444;">
-          <div>날짜: <strong>${date}</strong></div>
-          <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
-        </div>
-      </div>
-      <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
-      <table>
-        <thead>
-          <tr style="background:#1D9E75;color:white;">
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:14%;">고유번호</th>
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:24%;">브랜드</th>
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:18%;">모델번호</th>
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:14%;">컬러</th>
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:center;width:10%;">수량</th>
-            <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:center;width:20%;">확인 ☑</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-        <tfoot>
-          <tr style="background:#f0faf6;border-top:2px solid #1D9E75;">
-            <td colspan="4" style="padding:8px;border:1px solid #ddd;font-size:11pt;font-weight:700;">합&nbsp;&nbsp;&nbsp;&nbsp;계</td>
-            <td style="padding:8px;border:1px solid #ddd;font-size:12pt;font-weight:700;text-align:center;color:#1D9E75;">${totalQty}</td>
-            <td style="padding:8px;border:1px solid #ddd;"></td>
-          </tr>
-        </tfoot>
-      </table>
-      <div style="margin-top:6mm;display:flex;justify-content:space-between;font-size:9pt;color:#888;border-top:1px solid #eee;padding-top:3mm;">
-        <div>${ci.addr||''}</div>
-        <div>출력일시: ${new Date().toLocaleString('ko-KR')}</div>
-      </div>
-    </div>`;
+    <style>
+      @media print {
+        @page { size: A4 portrait; margin: 0; }
+        body { margin: 0; }
+        .no-print { display: none !important; }
+      }
+    </style>
+    ${pagesHtml}`;
 
   const pickPrintDiv = document.getElementById('pickPrintArea');
   const appEl2 = document.getElementById('app');
 
   pickPrintDiv.innerHTML = `
-    <div id="pickPrintToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
+    <div id="pickPrintToolbar" class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
       <button onclick="window.closePickPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
-      <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${window.pickData.date}_${window.pickData.client.name}</span></span>
+      <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${date}_${client.name}</span></span>
       <button onclick="window.savePickPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
     </div>
-    <div id="pickPrintBody" style="padding-top:56px;background:white;font-family:'맑은 고딕','Malgun Gothic',Arial,sans-serif;">
+    <div id="pickPrintBody" style="padding-top:60px;background:#e0e0e0;">
       ${html}
     </div>`;
 
@@ -3094,14 +3108,12 @@ window.savePickPDF = function() {
   if(btn){ btn.textContent='⏳ 저장중...'; btn.disabled=true; }
   const origPad = el.style.paddingTop;
   el.style.paddingTop = '0';
-  const rowCount = window.pickData.rows ? window.pickData.rows.length : 0;
-  const scale = rowCount > 80 ? 1 : 2;
   html2pdf().set({
-    margin: [8, 6, 8, 6],
+    margin: 0,
     filename: filename,
-    html2canvas: { scale: scale, useCORS: true, logging: false, letterRendering: true },
+    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css','legacy'], before: '.page-break', avoid: ['thead','tfoot','tr'] }
+    pagebreak: { mode: 'css', before: '[style*="page-break-after: always"],[style*="page-break-after:always"]' }
   }).from(el).save().then(()=>{
     el.style.paddingTop = origPad;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
