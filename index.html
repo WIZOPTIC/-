@@ -1633,7 +1633,7 @@ window.printPickingList = function() {
   const ci = window.companyInfo||{};
 
   const rowsHtml = rows.map((r,i) => `
-    <tr style="background:${i%2===0?'white':'#f9fafb'};page-break-inside:avoid;">
+    <tr style="background:${i%2===0?'white':'#f9fafb'};">
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.uid}</td>
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;font-weight:600;">${r.brand}</td>
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;">${r.modelNo}</td>
@@ -1642,22 +1642,44 @@ window.printPickingList = function() {
       <td style="padding:5px 8px;border:1px solid #ddd;font-size:9.5pt;text-align:center;">□</td>
     </tr>`).join('');
 
+  const printCSS = `
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 0; font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif; }
+      .pick-wrap { padding: 8mm 10mm; }
+      .pick-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4mm; }
+      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      tbody { display: table-row-group; }
+      tr { break-inside: avoid; page-break-inside: avoid; }
+      td, th { word-break: break-word; }
+      @media print {
+        @page { margin: 10mm; size: A4 portrait; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .no-print { display: none !important; }
+        table { page-break-inside: auto; }
+        tr { break-inside: avoid; page-break-inside: avoid; }
+        thead { display: table-header-group; }
+        tfoot { display: table-footer-group; }
+      }
+    </style>`;
+
   const html = `
-    <div style="padding:8mm 10mm;font-family:'맑은 고딕','Malgun Gothic',sans-serif;">
-      <div style="page-break-inside:avoid;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4mm;">
-          <div>
-            <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
-            <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;${ci.tel||''}</div>
-          </div>
-          <div style="text-align:right;font-size:10pt;color:#444;">
-            <div>날짜: <strong>${date}</strong></div>
-            <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
-          </div>
+    ${printCSS}
+    <div class="pick-wrap">
+      <div class="pick-header">
+        <div>
+          <div style="font-size:18pt;font-weight:700;letter-spacing:3px;margin-bottom:2mm;">출 고 리 스 트</div>
+          <div style="font-size:10pt;color:#444;">공급처: <strong>${ci.company||''}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;${ci.tel||''}</div>
         </div>
-        <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
+        <div style="text-align:right;font-size:10pt;color:#444;">
+          <div>날짜: <strong>${date}</strong></div>
+          <div style="margin-top:2mm;">총 수량: <strong style="font-size:13pt;color:#1D9E75;">${totalQty}개</strong></div>
+        </div>
       </div>
-      <table style="width:100%;border-collapse:collapse;page-break-inside:auto;">
+      <div style="font-size:13pt;font-weight:700;margin-bottom:3mm;border-left:4px solid #1D9E75;padding-left:8px;">${client.name} 귀하</div>
+      <table>
         <thead>
           <tr style="background:#1D9E75;color:white;">
             <th style="padding:7px 8px;border:1px solid #1D9E75;font-size:9.5pt;text-align:left;width:14%;">고유번호</th>
@@ -1670,7 +1692,7 @@ window.printPickingList = function() {
         </thead>
         <tbody>${rowsHtml}</tbody>
         <tfoot>
-          <tr style="background:#f0faf6;border-top:2px solid #1D9E75;page-break-inside:avoid;">
+          <tr style="background:#f0faf6;border-top:2px solid #1D9E75;">
             <td colspan="4" style="padding:8px;border:1px solid #ddd;font-size:11pt;font-weight:700;">합&nbsp;&nbsp;&nbsp;&nbsp;계</td>
             <td style="padding:8px;border:1px solid #ddd;font-size:12pt;font-weight:700;text-align:center;color:#1D9E75;">${totalQty}</td>
             <td style="padding:8px;border:1px solid #ddd;"></td>
@@ -3073,13 +3095,13 @@ window.savePickPDF = function() {
   const origPad = el.style.paddingTop;
   el.style.paddingTop = '0';
   const rowCount = window.pickData.rows ? window.pickData.rows.length : 0;
-  const scale = rowCount > 100 ? 1 : 2;
+  const scale = rowCount > 80 ? 1 : 2;
   html2pdf().set({
-    margin: [10,4,10,4],
+    margin: [8, 6, 8, 6],
     filename: filename,
-    html2canvas: { scale: scale, useCORS: true, logging: false },
+    html2canvas: { scale: scale, useCORS: true, logging: false, letterRendering: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all','legacy'], avoid: ['tr','thead','tfoot'] }
+    pagebreak: { mode: ['css','legacy'], before: '.page-break', avoid: ['thead','tfoot','tr'] }
   }).from(el).save().then(()=>{
     el.style.paddingTop = origPad;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
