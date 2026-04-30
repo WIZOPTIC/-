@@ -1632,8 +1632,8 @@ window.printPickingList = function() {
   const {client, date, rows, totalQty} = window.pickData;
   const ci = window.companyInfo||{};
 
-  const ROWS_P1 = 28;  // 첫 페이지
-  const ROWS_PN = 34;  // 이후 페이지
+  const ROWS_P1 = 22;  // 첫 페이지 (타이틀 공간 차지)
+  const ROWS_PN = 28;  // 이후 페이지 (안전 여유)
 
   const pages = [];
   let remaining = [...rows];
@@ -3114,41 +3114,36 @@ window.savePickPDF = function() {
   if(!bodyEl) return;
   if(btn){ btn.textContent='⏳ 저장중...'; btn.disabled=true; }
 
-  // 툴바 숨기고 배경/패딩 정리
+  // 스타일 저장
   if(toolbar) toolbar.style.display='none';
-  const origPad = bodyEl.style.paddingTop;
-  const origBg  = bodyEl.style.background;
-  const origGap = bodyEl.style.gap;
-  bodyEl.style.paddingTop = '0';
-  bodyEl.style.background = 'white';
-  bodyEl.style.gap = '0';
+  const s = bodyEl.style;
+  const orig = {pt:s.paddingTop, pb:s.paddingBottom, bg:s.background, gap:s.gap, ai:s.alignItems};
+  s.paddingTop = '0';
+  s.paddingBottom = '0';
+  s.background = 'white';
+  s.gap = '0';
+  s.alignItems = 'flex-start';
 
-  html2pdf().set({
-    margin: 0,
-    filename: filename,
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      windowWidth: 794
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: 'avoid-all' }
-  }).from(bodyEl).save().then(() => {
-    // 원복
+  const restore = () => {
     if(toolbar) toolbar.style.display='';
-    bodyEl.style.paddingTop = origPad;
-    bodyEl.style.background = origBg;
-    bodyEl.style.gap = origGap;
+    s.paddingTop = orig.pt;
+    s.paddingBottom = orig.pb;
+    s.background = orig.bg;
+    s.gap = orig.gap;
+    s.alignItems = orig.ai;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
-  }).catch(e => {
-    if(toolbar) toolbar.style.display='';
-    bodyEl.style.paddingTop = origPad;
-    bodyEl.style.background = origBg;
-    bodyEl.style.gap = origGap;
-    if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
-    alert('PDF 저장 오류: ' + e.message);
-  });
+  };
+
+  // DOM 업데이트 완료 후 렌더링
+  setTimeout(() => {
+    html2pdf().set({
+      margin: 0,
+      filename: filename,
+      html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: 'avoid-all' }
+    }).from(bodyEl).save().then(restore).catch(e => { restore(); alert('PDF 오류: ' + e.message); });
+  }, 150);
 };
 
 window.printWithTitle = function(title) {
