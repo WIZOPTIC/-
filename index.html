@@ -3105,21 +3105,23 @@ window.saveStmtPDF = function() {
 };
 
 window.savePickPDF = function() {
-  if(!window.pickData || !window._pickPagesHtml) return;
+  if(!window.pickData) return;
   const {date, client} = window.pickData;
   const filename = `출고리스트_${date}_${client.name}.pdf`;
   const btn = document.querySelector('#pickPrintToolbar button:last-child');
+  const toolbar = document.getElementById('pickPrintToolbar');
+  const bodyEl = document.getElementById('pickPrintBody');
+  if(!bodyEl) return;
   if(btn){ btn.textContent='⏳ 저장중...'; btn.disabled=true; }
 
-  // 툴바·배경 없는 깨끗한 PDF 전용 요소 생성
-  const pdfEl = document.createElement('div');
-  pdfEl.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:white;';
-  // 페이지 div 정확히 A4 높이로 설정
-  const cleanHtml = window._pickPagesHtml
-    .replace(/height:297mm;overflow:hidden;/g, 'height:297mm;overflow:hidden;')
-    .replace(/width:210mm;/g, 'width:794px;');
-  pdfEl.innerHTML = cleanHtml;
-  document.body.appendChild(pdfEl);
+  // 툴바 숨기고 배경/패딩 정리
+  if(toolbar) toolbar.style.display='none';
+  const origPad = bodyEl.style.paddingTop;
+  const origBg  = bodyEl.style.background;
+  const origGap = bodyEl.style.gap;
+  bodyEl.style.paddingTop = '0';
+  bodyEl.style.background = 'white';
+  bodyEl.style.gap = '0';
 
   html2pdf().set({
     margin: 0,
@@ -3128,16 +3130,22 @@ window.savePickPDF = function() {
       scale: 2,
       useCORS: true,
       logging: false,
-      width: 794,
       windowWidth: 794
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: 'avoid-all' }
-  }).from(pdfEl).save().then(() => {
-    document.body.removeChild(pdfEl);
+  }).from(bodyEl).save().then(() => {
+    // 원복
+    if(toolbar) toolbar.style.display='';
+    bodyEl.style.paddingTop = origPad;
+    bodyEl.style.background = origBg;
+    bodyEl.style.gap = origGap;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
   }).catch(e => {
-    document.body.removeChild(pdfEl);
+    if(toolbar) toolbar.style.display='';
+    bodyEl.style.paddingTop = origPad;
+    bodyEl.style.background = origBg;
+    bodyEl.style.gap = origGap;
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
     alert('PDF 저장 오류: ' + e.message);
   });
