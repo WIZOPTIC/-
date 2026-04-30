@@ -1632,9 +1632,8 @@ window.printPickingList = function() {
   const {client, date, rows, totalQty} = window.pickData;
   const ci = window.companyInfo||{};
 
-  // A4 기준 행 수 계산: 1페이지 헤더 포함 약 28행, 이후 페이지 약 36행
-  const ROWS_P1 = 28;
-  const ROWS_PN = 36;
+  const ROWS_P1 = 22;  // 첫 페이지 (타이틀 공간 차지)
+  const ROWS_PN = 28;  // 이후 페이지 (안전 여유)
 
   const pages = [];
   let remaining = [...rows];
@@ -1692,44 +1691,49 @@ window.printPickingList = function() {
     return html;
   };
 
+  // 페이지 HTML 생성 (PDF용 클린 버전 저장)
   const pagesHtml = pages.map((pageRows, pi) => {
     const isLast = pi === pages.length - 1;
     const isFirst = pi === 0;
-    return `
-      <div style="width:190mm;min-height:267mm;padding:8mm 10mm;box-sizing:border-box;background:white;font-family:'Malgun Gothic','맑은 고딕',Arial,sans-serif;page-break-after:${isLast?'auto':'always'};">
-        ${isFirst ? headerHtml : `<div style="font-size:10pt;color:#aaa;margin-bottom:3mm;">${client.name} 귀하 (계속 ${pi+1}/${pages.length})</div>`}
-        <table style="width:100%;border-collapse:collapse;">
-          ${theadHtml}
-          <tbody>${makeRowsHtml(pageRows, isLast)}</tbody>
-        </table>
-        <div style="margin-top:4mm;display:flex;justify-content:space-between;font-size:8pt;color:#aaa;border-top:1px solid #eee;padding-top:2mm;">
-          <div>${ci.addr||''}</div>
-          <div>${pi+1} / ${pages.length}</div>
-        </div>
-      </div>`;
+    return `<div style="width:210mm;height:297mm;overflow:hidden;padding:10mm 12mm;box-sizing:border-box;background:white;font-family:'Malgun Gothic','맑은 고딕',Arial,sans-serif;">
+      ${isFirst ? headerHtml : `<div style="font-size:9pt;color:#aaa;margin-bottom:3mm;">${client.name} 귀하 (계속 ${pi+1}/${pages.length})</div>`}
+      <table style="width:100%;border-collapse:collapse;">
+        ${theadHtml}
+        <tbody>${makeRowsHtml(pageRows, isLast)}</tbody>
+      </table>
+      <div style="position:absolute;bottom:6mm;left:12mm;right:12mm;display:flex;justify-content:space-between;font-size:8pt;color:#aaa;border-top:1px solid #eee;padding-top:2mm;">
+        <div>${ci.addr||''}</div>
+        <div>${pi+1} / ${pages.length}</div>
+      </div>
+    </div>`;
   }).join('');
 
-  const html = `
-    <style>
-      @media print {
-        @page { size: A4 portrait; margin: 0; }
-        body { margin: 0; }
-        .no-print { display: none !important; }
-      }
-    </style>
-    ${pagesHtml}`;
+  // PDF 생성용으로 저장
+  window._pickPagesHtml = pagesHtml;
 
   const pickPrintDiv = document.getElementById('pickPrintArea');
   const appEl2 = document.getElementById('app');
 
+  // 미리보기: 페이지 사이 회색 구분선
   pickPrintDiv.innerHTML = `
-    <div id="pickPrintToolbar" class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
+    <div id="pickPrintToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
       <button onclick="window.closePickPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
       <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${date}_${client.name}</span></span>
       <button onclick="window.savePickPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
     </div>
-    <div id="pickPrintBody" style="padding-top:60px;background:#e0e0e0;">
-      ${html}
+    <div style="padding-top:60px;background:#888;display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:16px;">
+      ${pages.map((pageRows, pi) => {
+        const isLast = pi === pages.length - 1;
+        const isFirst = pi === 0;
+        const headerHtmlPreview = isFirst ? headerHtml : `<div style="font-size:9pt;color:#aaa;margin-bottom:3mm;">${client.name} 귀하 (계속 ${pi+1}/${pages.length})</div>`;
+        return `<div style="width:210mm;background:white;padding:10mm 12mm;box-sizing:border-box;font-family:'Malgun Gothic','맑은 고딕',Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+          ${headerHtmlPreview}
+          <table style="width:100%;border-collapse:collapse;">${theadHtml}<tbody>${makeRowsHtml(pageRows, isLast)}</tbody></table>
+          <div style="display:flex;justify-content:space-between;font-size:8pt;color:#aaa;border-top:1px solid #eee;padding-top:2mm;margin-top:4mm;">
+            <div>${ci.addr||''}</div><div>${pi+1} / ${pages.length}</div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>`;
 
   appEl2.style.display = 'none';
@@ -1739,6 +1743,7 @@ window.printPickingList = function() {
     pickPrintDiv.style.display = 'none';
     pickPrintDiv.innerHTML = '';
     appEl2.style.display = '';
+    window._pickPagesHtml = null;
   };
 };
 
@@ -3100,23 +3105,41 @@ window.saveStmtPDF = function() {
 };
 
 window.savePickPDF = function() {
-  const el = document.getElementById('pickPrintBody');
-  if(!el || !window.pickData) return;
+  if(!window.pickData || !window._pickPagesHtml) return;
   const {date, client} = window.pickData;
   const filename = `출고리스트_${date}_${client.name}.pdf`;
   const btn = document.querySelector('#pickPrintToolbar button:last-child');
   if(btn){ btn.textContent='⏳ 저장중...'; btn.disabled=true; }
-  const origPad = el.style.paddingTop;
-  el.style.paddingTop = '0';
+
+  // 툴바·배경 없는 깨끗한 PDF 전용 요소 생성
+  const pdfEl = document.createElement('div');
+  pdfEl.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:white;';
+  // 페이지 div 정확히 A4 높이로 설정
+  const cleanHtml = window._pickPagesHtml
+    .replace(/height:297mm;overflow:hidden;/g, 'height:297mm;overflow:hidden;')
+    .replace(/width:210mm;/g, 'width:794px;');
+  pdfEl.innerHTML = cleanHtml;
+  document.body.appendChild(pdfEl);
+
   html2pdf().set({
     margin: 0,
     filename: filename,
-    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: 794,
+      windowWidth: 794
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: 'css', before: '[style*="page-break-after: always"],[style*="page-break-after:always"]' }
-  }).from(el).save().then(()=>{
-    el.style.paddingTop = origPad;
+    pagebreak: { mode: 'avoid-all' }
+  }).from(pdfEl).save().then(() => {
+    document.body.removeChild(pdfEl);
     if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
+  }).catch(e => {
+    document.body.removeChild(pdfEl);
+    if(btn){ btn.textContent='📥 PDF저장'; btn.disabled=false; }
+    alert('PDF 저장 오류: ' + e.message);
   });
 };
 
