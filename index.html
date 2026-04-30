@@ -1632,8 +1632,8 @@ window.printPickingList = function() {
   const {client, date, rows, totalQty} = window.pickData;
   const ci = window.companyInfo||{};
 
-  const ROWS_P1 = 22;  // 첫 페이지 (타이틀 공간 차지)
-  const ROWS_PN = 28;  // 이후 페이지 (안전 여유)
+  const ROWS_P1 = 28;  // 첫 페이지
+  const ROWS_PN = 34;  // 이후 페이지
 
   const pages = [];
   let remaining = [...rows];
