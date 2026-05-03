@@ -339,6 +339,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="barcode-wrap" style="padding-top:8px;position:relative;">
         <span style="position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none;">📷</span>
         <input class="barcode-input" id="barcodeInput" placeholder="바코드를 스캔하거나 입력하세요" autocomplete="off" />
+        <div id="barcodeDropdown" style="display:none;position:absolute;left:0;right:0;top:100%;background:white;border:1px solid #1D9E75;border-top:none;border-radius:0 0 12px 12px;max-height:280px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.12);"></div>
       </div>
       <!-- 스캔 내역 (바코드 바로 아래, 최신순) -->
       <div id="cartEmpty" style="text-align:center;padding:24px 20px;color:#bbb;">
@@ -1089,9 +1090,87 @@ window.setType = function(type) {
 };
 
 // 바코드 스캔
-document.getElementById('barcodeInput').addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&this.value.trim()){addToCart(this.value.trim());this.value='';e.preventDefault();}
-});
+// 바코드 입력 - 스캐너/수동 자동 구분
+(function(){
+  const inp = document.getElementById('barcodeInput');
+  const drop = document.getElementById('barcodeDropdown');
+  let lastKeyTime = 0;
+  let charCount = 0;
+  let scanBuffer = '';
+  let scanTimer = null;
+
+  function closeDrop() { drop.style.display='none'; drop.innerHTML=''; }
+
+  function openDrop(q) {
+    const list = window.dbProducts.filter(p =>
+      (p.barcode||'').toLowerCase().includes(q) ||
+      (p.brand||p.name||'').toLowerCase().includes(q) ||
+      (p.modelNo||'').toLowerCase().includes(q) ||
+      (p.uid||'').toLowerCase().includes(q)
+    ).slice(0, 20);
+    if(!list.length){ closeDrop(); return; }
+    drop.innerHTML = list.map(p => {
+      const color = p.color||p.colorno||p.colorNo||'';
+      return `<div onmousedown="selectBarcodeProduct('${p.id}')"
+        style="padding:13px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;color:#222;">${p.modelNo||''} ${color} <span style="color:#1D9E75;font-weight:600;">${p.brand||p.name}</span></div>
+          <div style="font-size:11px;color:#aaa;margin-top:2px;">${p.barcode||p.id}</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#1D9E75;white-space:nowrap;">${fmt(p.price||0)}</div>
+      </div>`;
+    }).join('');
+    drop.style.display = 'block';
+  }
+
+  inp.addEventListener('keydown', function(e) {
+    const now = Date.now();
+    const gap = now - lastKeyTime;
+    lastKeyTime = now;
+
+    if(e.key === 'Enter') {
+      e.preventDefault();
+      const val = this.value.trim();
+      if(!val) return;
+      closeDrop();
+      addToCart(val);
+      this.value = '';
+      charCount = 0;
+      return;
+    }
+
+    // 스캐너 감지: 연속 입력 간격 40ms 이하
+    if(gap < 40) charCount++;
+    else charCount = 1;
+  });
+
+  inp.addEventListener('input', function() {
+    const val = this.value.trim();
+    if(!val){ closeDrop(); return; }
+    // 스캐너는 charCount가 급격히 쌓이므로 수동 입력만 드롭다운
+    if(charCount <= 2) {
+      openDrop(val.toLowerCase());
+    }
+  });
+
+  inp.addEventListener('blur', function() {
+    setTimeout(closeDrop, 200);
+  });
+
+  window.selectBarcodeProduct = function(pid) {
+    const p = window.dbProducts.find(x=>x.id===pid);
+    if(!p) return;
+    closeDrop();
+    const inp2 = document.getElementById('barcodeInput');
+    inp2.value = '';
+    charCount = 0;
+    const ex = window.cart.find(x=>x.pid===p.id);
+    if(ex){ex.qty++;}
+    else{window.cart.push({pid:p.id,barcode:p.barcode||p.id,brand:p.brand||p.name,modelNo:p.modelNo||'',color:p.color||p.colorno||'',uid:p.uid||'',price:p.price||0,cost:p.cost||0,qty:1});}
+    renderCart();
+    inp2.focus();
+  };
+})();
 // 반품 바코드 스캔 이벤트
 document.getElementById('returnBarcodeInput').addEventListener('keydown',function(e){
   if(e.key==='Enter'&&this.value.trim()){addToReturnByBarcode(this.value.trim());this.value='';e.preventDefault();}
@@ -2557,8 +2636,8 @@ window.renderProducts = function(filter='') {
     <div class="list-item" onclick="openEditProductModal('${p.id}')">
       <div class="avatar" style="background:#e3f2fd;color:#1976D2;font-size:12px;">${(p.brand||p.name||'?')[0]}</div>
       <div class="list-info">
-        <div class="list-name">${p.brand||p.name} <span style="font-size:12px;color:#aaa;">${p.modelNo||''}</span></div>
-        <div class="list-sub">바코드: ${p.barcode||p.id} | 컬러: ${p.color||'-'} | 고유: ${p.uid||'-'}</div>
+        <div class="list-name"><span style="font-size:15px;color:#222;font-weight:700;">${p.modelNo||''}</span>${(p.color||p.colorno||p.colorNo)?' <span style="font-size:15px;color:#222;font-weight:700;">'+(p.color||p.colorno||p.colorNo)+'</span>':''} <span style="font-size:14px;color:#1D9E75;font-weight:600;">${p.brand||p.name}</span></div>
+        <div class="list-sub">바코드: ${p.barcode||p.id} | 고유: ${p.uid||'-'}</div>
       </div>
       <div class="list-right">
         <div class="list-price">${fmt(p.price||0)}</div>
