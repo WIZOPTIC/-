@@ -646,6 +646,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   <div class="page-body" style="padding-bottom:80px;">
     <div style="display:flex;gap:8px;padding:10px 12px 0;">
       <button class="btn btn-primary" style="flex:1;margin:0;padding:11px;font-size:13px;" onclick="downloadClientTemplate()">📥 양식 다운로드</button>
+      <button class="btn btn-secondary" style="flex:1;margin:0;padding:11px;font-size:13px;" onclick="downloadClientData()">📤 데이터 다운로드</button>
       <label style="flex:1;margin:0;" class="btn btn-blue" style="padding:11px;font-size:13px;text-align:center;cursor:pointer;">
         📤 엑셀 업로드
         <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="uploadClientExcel(this)" />
@@ -667,6 +668,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   <div class="page-body" style="padding-bottom:80px;">
     <div style="display:flex;gap:8px;padding:10px 12px 0;">
       <button class="btn btn-primary" style="flex:1;margin:0;padding:11px;font-size:13px;" onclick="downloadProductTemplate()">📥 양식 다운로드</button>
+      <button class="btn btn-secondary" style="flex:1;margin:0;padding:11px;font-size:13px;" onclick="downloadProductData()">📤 데이터 다운로드</button>
       <label style="flex:1;margin:0;" class="btn btn-blue" style="padding:11px;font-size:13px;text-align:center;cursor:pointer;">
         📤 엑셀 업로드
         <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="uploadProductExcel(this)" />
@@ -1934,7 +1936,7 @@ window.generateStatement = function() {
   const returnTotal=Object.values(returnMap).reduce((s,r)=>s+r.total,0);
   const grandTotal=saleTotal-returnTotal;
   const ci=window.companyInfo||{};
-  const prevAr=(client.ar||0)-grandTotal;
+  const prevAr=(client.ar||0)-grandTotal+dayPaymentTotal;
   const janggeum=Math.max(0,prevAr)+grandTotal-dayPaymentTotal;
   window.stmtData={client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum,ci};
 
@@ -2266,11 +2268,21 @@ window.renderAR = function(filter='') {
   const list=allC.map(c=>{
     return{...c,calcAR:c.ar||0};
   });
-  list.sort((a,b)=>b.calcAR-a.calcAR);
-  const total=list.reduce((s,c)=>s+(c.calcAR>0?c.calcAR:0),0);
+  list.sort((a,b)=>{
+    // 미수 먼저(높은 순) → 선입금(낮은 순) → 완납 맨 아래
+    const aGrp = a.calcAR>0?0:a.calcAR<0?1:2;
+    const bGrp = b.calcAR>0?0:b.calcAR<0?1:2;
+    if(aGrp!==bGrp) return aGrp-bGrp;
+    if(aGrp===0) return b.calcAR-a.calcAR;
+    if(aGrp===1) return a.calcAR-b.calcAR; // 선입금 많은 순
+    return a.name.localeCompare(b.name,'ko');
+  });
+  const total=list.reduce((s,c)=>s+c.calcAR,0); // 선입금 차감한 실제 순미수금
   const arCount=list.filter(c=>c.calcAR>0).length;
-  document.getElementById('arTotal').textContent=fmt(total);
+  document.getElementById('arTotal').textContent=fmt(Math.max(0,total));
   document.getElementById('arCount').textContent=arCount+'개 거래처';
+  const prepaidEl=document.getElementById('arPrepaid');
+  if(prepaidEl) prepaidEl.textContent='';
   document.getElementById('arList').innerHTML=list.length?list.map(c=>{
     const isZero=c.calcAR===0;
     const isMinus=c.calcAR<0;
@@ -3158,6 +3170,41 @@ window.doResetAllData = async function() {
   showLoading(false);
 };
 
+// ===== 데이터 다운로드 =====
+window.downloadClientData = function() {
+  const clients = window.dbClients;
+  if(!clients||!clients.length){ alert('등록된 거래처가 없습니다.'); return; }
+  const wb = XLSX.utils.book_new();
+  const rows = [['거래처명*','도시','사업자번호','대표자','전화','휴대폰','주소','이메일','초기미수금']];
+  clients.forEach(c => rows.push([
+    c.name||'', c.city||'', c.biz||'', c.ceo||'',
+    c.tel||'', c.mobile||'', c.addr||'', c.email||'',
+    c.arInit||0
+  ]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:16},{wch:8},{wch:14},{wch:10},{wch:14},{wch:14},{wch:30},{wch:20},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, '거래처');
+  XLSX.writeFile(wb, `거래처_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast(`✅ 거래처 ${clients.length}건 다운로드 완료`);
+};
+
+window.downloadProductData = function() {
+  const products = window.dbProducts;
+  if(!products||!products.length){ alert('등록된 상품이 없습니다.'); return; }
+  const wb = XLSX.utils.book_new();
+  const rows = [['바코드*','고유번호','브랜드(상품명)*','모델번호','컬러번호','원가','판매가(VAT포함)*','재고']];
+  products.forEach(p => rows.push([
+    p.barcode||p.id||'', p.uid||'', p.brand||p.name||'',
+    p.modelNo||'', p.color||p.colorno||p.colorNo||'',
+    p.cost||0, p.price||0, p.stock||0
+  ]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:16},{wch:10},{wch:16},{wch:12},{wch:10},{wch:8},{wch:16},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, ws, '상품');
+  XLSX.writeFile(wb, `상품_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast(`✅ 상품 ${products.length}건 다운로드 완료`);
+};
+
 // ===== 엑셀 양식 다운로드 =====
 window.downloadClientTemplate = function() {
   const wb = XLSX.utils.book_new();
@@ -3192,12 +3239,14 @@ window.uploadClientExcel = async function(input) {
     const wb = XLSX.read(data);
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
     if(!rows.length){alert('데이터가 없습니다');showLoading(false);return;}
-    let ok=0, skip=0;
+    let ok=0, skip=0, updated=0;
     for(const r of rows){
       const name=(r['거래처명*']||r['거래처명']||'').toString().trim();
       if(!name){skip++;continue;}
-      const id = name.replace(/\s+/g,'_').replace(/\//g,'-').replace(/[^a-zA-Z0-9가-힣_\-]/g,'')+'_'+Date.now().toString(36);
-      await setDoc(doc(db,'clients',id),{
+      // 기존 거래처 이름으로 검색
+      const existing = window.dbClients.find(c=>c.name===name);
+      const id = existing ? existing.id : name.replace(/\s+/g,'_').replace(/\//g,'-').replace(/[^a-zA-Z0-9가-힣_\-]/g,'');
+      const data = {
         name,
         city:(r['도시']||'').toString().trim(),
         bizNo:(r['사업자번호']||'').toString().trim(),
@@ -3207,13 +3256,17 @@ window.uploadClientExcel = async function(input) {
         address:(r['주소']||'').toString().trim(),
         email:(r['이메일']||'').toString().trim(),
         arInit:parseInt(r['초기미수금'])||0,
-        ar:parseInt(r['초기미수금'])||0,
-        createdAt:new Date().toISOString()
-      });
-      ok++;
+      };
+      if(existing){
+        await updateDoc(doc(db,'clients',id), data);
+        updated++;
+      } else {
+        await setDoc(doc(db,'clients',id), {...data, ar:data.arInit, createdAt:new Date().toISOString()});
+        ok++;
+      }
     }
     input.value='';
-    alert(`✅ 거래처 업로드 완료!\n등록: ${ok}건 / 건너뜀: ${skip}건`);
+    alert(`✅ 거래처 업로드 완료!\n신규: ${ok}건 / 수정: ${updated}건 / 건너뜀: ${skip}건`);
   } catch(e){alert('오류: '+e.message);}
   showLoading(false);
 };
