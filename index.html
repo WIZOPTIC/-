@@ -232,7 +232,33 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 </style>
 </head>
 <body>
-<div class="screen" id="app">
+<!-- 로그인 화면 -->
+<div id="loginScreen" style="display:flex;position:fixed;inset:0;background:#1D9E75;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+  <div style="width:100%;max-width:360px;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div style="font-size:26px;font-weight:800;color:white;letter-spacing:1px;">위즈옵틱</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.75);margin-top:6px;">판매관리 시스템</div>
+    </div>
+    <div style="background:white;border-radius:20px;padding:28px 24px;">
+      <div style="font-size:13px;color:#888;margin-bottom:8px;">이메일</div>
+      <input type="email" id="loginEmail" placeholder="이메일 입력" autocomplete="username"
+        style="width:100%;padding:14px 16px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:16px;outline:none;box-sizing:border-box;margin-bottom:14px;"
+        onfocus="this.style.borderColor='#1D9E75'" onblur="this.style.borderColor='#e0e0e0'">
+      <div style="font-size:13px;color:#888;margin-bottom:8px;">비밀번호</div>
+      <input type="password" id="loginPassword" placeholder="비밀번호 입력" autocomplete="current-password"
+        style="width:100%;padding:14px 16px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:16px;outline:none;box-sizing:border-box;margin-bottom:6px;"
+        onfocus="this.style.borderColor='#1D9E75'" onblur="this.style.borderColor='#e0e0e0'"
+        onkeydown="if(event.key==='Enter') doLogin()">
+      <div id="loginError" style="color:#e53935;font-size:13px;min-height:20px;margin-bottom:10px;"></div>
+      <button onclick="doLogin()" id="loginBtn"
+        style="width:100%;padding:16px;background:#1D9E75;color:white;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;">
+        로그인
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="app" style="display:none;">
 
 <!-- 홈 화면 -->
 <div id="home" class="screen" style="display:flex;flex-direction:column;">
@@ -708,6 +734,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
       <div style="font-size:13px;color:#888;margin-bottom:12px;">모든 거래처, 상품, 매출 데이터를 완전히 삭제합니다. 복구가 불가능합니다.</div>
       <button class="btn btn-secondary" style="margin:8px 0 0;" onclick="recalibrateAllAR()">🔄 전체 미수금 재계산</button>
       <button class="btn btn-red" style="margin:8px 0 0;" onclick="resetAllData()">🗑️ 전체 데이터 초기화</button>
+      <button class="btn btn-secondary" style="margin:8px 0 0;" onclick="doLogout()">🚪 로그아웃</button>
     </div>
   </div>
 </div>
@@ -722,6 +749,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, setDoc, getDoc, getDocs, where, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ====== 한국시간(KST) 날짜 헬퍼 ======
 function getKSTDate(offsetMonths=0) {
@@ -748,6 +776,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 window.dbClients=[]; window.dbProducts=[]; window.dbSales=[]; window.barcodeMap={};
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
@@ -794,6 +823,29 @@ window.saveSettings = async function() {
   showLoading(false);
 };
 
+// ===== 인증 =====
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if(!email||!pw){errEl.textContent='이메일과 비밀번호를 입력해주세요.';return;}
+  btn.textContent='로그인 중...'; btn.disabled=true; errEl.textContent='';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    btn.textContent='로그인'; btn.disabled=false;
+    errEl.textContent = '이메일 또는 비밀번호가 틀렸습니다.';
+  }
+};
+
+window.doLogout = async function() {
+  if(!confirm('로그아웃 하시겠어요?')) return;
+  await signOut(auth);
+};
+
+let _appInited = false;
+function initApp() {
 // 실시간 데이터
 onSnapshot(collection(db,"clients"), snap=>{
   window.dbClients=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
@@ -812,6 +864,10 @@ onSnapshot(collection(db,"products"), snap=>{
 });
 // ✅ sales 전체 실시간 감시 제거 → 기간별 필요 시 로드
 window.salesRange={from:'',to:''};
+// 앱 시작 시 최근 1개월 로드
+fetchSalesRange(getKSTMonthStart(), getKSTDate()).then(()=>{renderLedger();renderStats();});
+} // initApp 끝
+
 async function fetchSalesRange(from, to) {
   if(window.salesRange.from===from && window.salesRange.to===to) return;
   try {
@@ -822,8 +878,22 @@ async function fetchSalesRange(from, to) {
     window.salesRange={from,to};
   } catch(e){console.error('sales 로드 오류:',e);}
 }
-// 앱 시작 시 최근 1개월 로드
-fetchSalesRange(getKSTMonthStart(), getKSTDate()).then(()=>{renderLedger();renderStats();});
+
+// 인증 상태 감시
+onAuthStateChanged(auth, user => {
+  const loginScreen = document.getElementById('loginScreen');
+  const appEl = document.getElementById('app');
+  if(user) {
+    loginScreen.style.display = 'none';
+    appEl.style.display = 'flex';
+    appEl.style.flexDirection = 'column';
+    if(!_appInited){ _appInited=true; initApp(); }
+  } else {
+    _appInited = false;
+    loginScreen.style.display = 'flex';
+    appEl.style.display = 'none';
+  }
+});
 
 // VAT 계산 (VAT포함 → 공급가, VAT)
 window.calcVat = function(totalAmt) {
