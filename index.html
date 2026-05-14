@@ -704,7 +704,8 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
     <div style="margin:12px;background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:2px solid #ffebee;">
       <div style="font-size:15px;font-weight:700;color:#e53935;margin-bottom:8px;">⚠️ 위험 구역</div>
       <div style="font-size:13px;color:#888;margin-bottom:12px;">모든 거래처, 상품, 매출 데이터를 완전히 삭제합니다. 복구가 불가능합니다.</div>
-      <button class="btn btn-red" style="margin:0;" onclick="resetAllData()">🗑️ 전체 데이터 초기화</button>
+      <button class="btn btn-secondary" style="margin:8px 0 0;" onclick="recalibrateAllAR()">🔄 전체 미수금 재계산</button>
+      <button class="btn btn-red" style="margin:8px 0 0;" onclick="resetAllData()">🗑️ 전체 데이터 초기화</button>
     </div>
   </div>
 </div>
@@ -718,7 +719,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, setDoc, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, setDoc, getDoc, getDocs, where, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ====== 한국시간(KST) 날짜 헬퍼 ======
 function getKSTDate(offsetMonths=0) {
@@ -2226,15 +2227,8 @@ window.saveQuickPayment = async function(clientId) {
       type:'payment', clientId, clientName:c.name,
       date, total:amt, memo, timestamp:new Date().toISOString(), items:[]
     });
-    const qAll = query(collection(db,'sales'), where('clientId','==',clientId));
-    const snapAll = await getDocs(qAll);
-    const allS = snapAll.docs.map(d=>d.data());
-    const newAr = (c.arInit||0)
-      + allS.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+(x.total||0),0)
-      - allS.filter(x=>x.type==='return').reduce((a,x)=>a+(x.total||0),0)
-      - allS.filter(x=>x.type==='payment').reduce((a,x)=>a+(x.total||0),0);
-    await updateDoc(doc(db,'clients',clientId),{ar:newAr});
-    c.ar = newAr;
+    await updateDoc(doc(db,'clients',clientId),{ar: increment(-amt)});
+    c.ar = (c.ar||0) - amt;
     closeModalDirect();
     showToast(`✅ ${c.name} 입금 ${fmt(amt)} 완료!`);
     renderAR();
@@ -2928,17 +2922,9 @@ window.savePayment = async function() {
       date, total:amt, memo, timestamp:new Date().toISOString(),
       items:[]
     });
-    // 미수금 재계산
-    const qAll = query(collection(db,'sales'), where('clientId','==',clientId));
-    const snapAll = await getDocs(qAll);
-    const allSales = snapAll.docs.map(d=>d.data());
-    const saleTotal = allSales.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+x.total,0);
-    const returnTotal = allSales.filter(x=>x.type==='return').reduce((a,x)=>a+x.total,0);
-    const payTotal = allSales.filter(x=>x.type==='payment').reduce((a,x)=>a+x.total,0);
-    const newAr = (client.arInit||0) + saleTotal - returnTotal - payTotal;
-    await updateDoc(doc(db,'clients',clientId),{ar:newAr});
-    // 로컬 갱신
-    client.ar = newAr;
+    // 미수금 증감 방식
+    await updateDoc(doc(db,'clients',clientId),{ar: increment(-amt)});
+    client.ar = (client.ar||0) - amt;
     document.getElementById('paymentArAmt').textContent = fmt(newAr);
     document.getElementById('paymentArAmt').style.color = newAr > 0 ? '#e53935' : '#1D9E75';
     document.getElementById('paymentAmt').value = '';
@@ -3059,17 +3045,25 @@ window.saveEditSale = async function(id) {
       updateData = {...updateData, items:updatedItems, total, supply, vat, cost};
     }
     await updateDoc(doc(db,'sales',id), updateData);
-    // AR 재계산
+    // AR 증감: 변경된 차액만 반영
     const client = window.dbClients.find(c=>c.id===s.clientId);
     if(client){
-      const qAll = query(collection(db,'sales'),where('clientId','==',s.clientId));
-      const snapAll = await getDocs(qAll);
-      const allS = snapAll.docs.map(d=>d.data());
-      const newAr = (client.arInit||0)
-        + allS.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+(x.total||0),0)
-        - allS.filter(x=>x.type==='return').reduce((a,x)=>a+(x.total||0),0)
-        - allS.filter(x=>x.type==='payment').reduce((a,x)=>a+(x.total||0),0);
-      await updateDoc(doc(db,'clients',s.clientId),{ar:newAr});
+      let diff = 0;
+      if(s.type==='payment'){
+        const oldAmt = s.total||0;
+        const newAmt = parseInt((document.getElementById('es_amt')?.value||'0').replace(/[^0-9]/g,''))||0;
+        diff = -(newAmt - oldAmt); // 입금 증가 → AR 감소
+      } else if(s.type==='return'){
+        const newTotal = updateData.total||s.total||0;
+        diff = -(newTotal - (s.total||0)); // 반품 증가 → AR 감소
+      } else {
+        const newTotal = updateData.total||s.total||0;
+        diff = newTotal - (s.total||0); // 매출 증가 → AR 증가
+      }
+      if(diff !== 0){
+        await updateDoc(doc(db,'clients',s.clientId),{ar: increment(diff)});
+        client.ar = (client.ar||0) + diff;
+      }
     }
     closeModalDirect();
     const from = document.getElementById('ledgerFrom')?.value || getKSTMonthStart();
@@ -3103,17 +3097,15 @@ window.deleteSale = async function(id) {
     // 전표 먼저 삭제
     await deleteDoc(doc(db,'sales',id));
 
-    // 삭제 후 Firebase에서 해당 거래처 전표 전체 재조회해서 AR 정확히 재계산
+    // 삭제된 항목 반대로 AR 증감
     const client = window.dbClients.find(c=>c.id===s.clientId);
     if(client) {
-      const qAll = query(collection(db,'sales'), where('clientId','==',s.clientId));
-      const snapAll = await getDocs(qAll);
-      const allSales = snapAll.docs.map(d=>d.data());
-      const saleTotal = allSales.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+x.total,0);
-      const returnTotal = allSales.filter(x=>x.type==='return').reduce((a,x)=>a+x.total,0);
-      const payTotal = allSales.filter(x=>x.type==='payment').reduce((a,x)=>a+x.total,0);
-      const newAr = (client.arInit||0) + saleTotal - returnTotal - payTotal;
-      await updateDoc(doc(db,'clients',s.clientId),{ar: newAr});
+      let diff = 0;
+      if(s.type==='payment') diff = s.total||0;       // 입금 삭제 → AR 증가
+      else if(s.type==='return') diff = s.total||0;   // 반품 삭제 → AR 증가
+      else diff = -(s.total||0);                       // 매출 삭제 → AR 감소
+      await updateDoc(doc(db,'clients',s.clientId),{ar: increment(diff)});
+      client.ar = (client.ar||0) + diff;
     }
 
     closeModalDirect();
@@ -3152,6 +3144,33 @@ window.resetAllData = function() {
         <button class="btn btn-secondary" style="margin:0;" onclick="closeModalDirect()">취소</button>
       </div>
     </div>`;
+};
+
+// ===== 전체 미수금 일괄 재계산 (초기 동기화용) =====
+window.recalibrateAllAR = async function() {
+  if(!confirm('모든 거래처의 미수금을 전체 거래내역 기준으로 정확히 재계산합니다.\n계속할까요?')) return;
+  showLoading(true);
+  try {
+    const clients = window.dbClients;
+    const allSalesSnap = await getDocs(collection(db,'sales'));
+    const allSales = allSalesSnap.docs.map(d=>({id:d.id,...d.data()}));
+    let count = 0;
+    for(const c of clients){
+      const cSales = allSales.filter(s=>s.clientId===c.id);
+      const newAr = (c.arInit||0)
+        + cSales.filter(x=>x.type==='sale'||!x.type).reduce((a,x)=>a+(x.total||0),0)
+        - cSales.filter(x=>x.type==='return').reduce((a,x)=>a+(x.total||0),0)
+        - cSales.filter(x=>x.type==='payment').reduce((a,x)=>a+(x.total||0),0);
+      if(newAr !== (c.ar||0)){
+        await updateDoc(doc(db,'clients',c.id),{ar:newAr});
+        c.ar = newAr;
+        count++;
+      }
+    }
+    renderAR();
+    showToast(`✅ 재계산 완료! ${count}개 거래처 업데이트됨`);
+  } catch(e){ alert('오류: '+e.message); }
+  showLoading(false);
 };
 
 window.doResetAllData = async function() {
