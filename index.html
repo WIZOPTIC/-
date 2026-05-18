@@ -2998,8 +2998,8 @@ window.savePayment = async function() {
     // 미수금 증감 방식
     await updateDoc(doc(db,'clients',clientId),{ar: increment(-amt)});
     client.ar = (client.ar||0) - amt;
-    document.getElementById('paymentArAmt').textContent = fmt(newAr);
-    document.getElementById('paymentArAmt').style.color = newAr > 0 ? '#e53935' : '#1D9E75';
+    document.getElementById('paymentArAmt').textContent = fmt(client.ar);
+    document.getElementById('paymentArAmt').style.color = client.ar > 0 ? '#e53935' : '#1D9E75';
     document.getElementById('paymentAmt').value = '';
     document.getElementById('paymentMemo').value = '';
     document.getElementById('paymentPreview').style.display = 'none';
