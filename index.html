@@ -2930,17 +2930,83 @@ window.renderPaymentHistory = async function() {
       return;
     }
     listEl.innerHTML = payments.map((p,i)=>`
-      <div style="display:flex;align-items:center;padding:13px 16px;${i<payments.length-1?'border-bottom:1px solid #f5f5f5;':''}">
+      <div onclick="openPaymentEditModal('${p.id}')" style="display:flex;align-items:center;padding:13px 16px;${i<payments.length-1?'border-bottom:1px solid #f5f5f5;':''}cursor:pointer;">
         <div style="flex:1;min-width:0;">
           <div style="font-size:14px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.clientName||''}</div>
           <div style="font-size:11px;color:#aaa;margin-top:2px;">${p.date}${p.memo?' · '+p.memo:''}</div>
         </div>
         <div style="font-size:15px;font-weight:700;color:#1976D2;margin-left:10px;white-space:nowrap;">${fmt(p.total||0)}</div>
+        <div style="font-size:18px;color:#ddd;margin-left:8px;">›</div>
       </div>
     `).join('');
   } catch(e) {
     listEl.innerHTML = `<div style="padding:16px;color:#e53935;font-size:13px;text-align:center;">오류: ${e.message}</div>`;
   }
+};
+
+// ===== 입금관리 전표 수정/삭제 =====
+window.openPaymentEditModal = async function(saleId) {
+  showLoading(true);
+  const snap = await getDoc(doc(db,'sales',saleId));
+  showLoading(false);
+  if(!snap.exists()) { alert('데이터를 찾을 수 없습니다.'); return; }
+  const p = {id:snap.id, ...snap.data()};
+  document.getElementById('modalArea').innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModalDirect()">×</button>
+        <div style="font-size:16px;font-weight:700;margin-bottom:14px;margin-top:4px;">${p.clientName}</div>
+        <div class="field-label">날짜</div>
+        <input type="date" class="field-input" id="peDate" value="${p.date}">
+        <div class="field-label">입금액</div>
+        <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
+        <div class="field-label">메모</div>
+        <input type="text" class="field-input" id="peMemo" value="${p.memo||''}" placeholder="메모">
+        <button class="btn btn-primary" onclick="savePaymentEdit('${saleId}','${p.clientId}',${p.total||0})">✅ 수정 저장</button>
+        <button class="btn btn-red" style="margin:6px 16px 0;" onclick="deletePaymentEntry('${saleId}','${p.clientId}',${p.total||0})">🗑️ 삭제</button>
+        <button class="btn btn-secondary" style="margin:6px 16px 0;" onclick="closeModalDirect()">취소</button>
+      </div>
+    </div>`;
+  history.pushState({page:'modal'},'');
+};
+
+window.savePaymentEdit = async function(saleId, clientId, oldAmt) {
+  const date = document.getElementById('peDate').value;
+  const newAmt = parseInt((document.getElementById('peAmt').value||'').replace(/[^0-9]/g,''))||0;
+  const memo = (document.getElementById('peMemo').value||'').trim();
+  if(!date){alert('날짜를 선택해주세요.');return;}
+  if(!newAmt){alert('입금액을 입력해주세요.');return;}
+  showLoading(true);
+  try {
+    await updateDoc(doc(db,'sales',saleId),{date, total:newAmt, memo});
+    const diff = oldAmt - newAmt; // 기존보다 적으면 AR 증가, 많으면 감소
+    if(diff !== 0){
+      await updateDoc(doc(db,'clients',clientId),{ar: increment(diff)});
+      const c = window.dbClients.find(x=>x.id===clientId);
+      if(c) c.ar = (c.ar||0) + diff;
+    }
+    closeModalDirect();
+    renderPaymentHistory();
+    renderAR();
+    showToast('✅ 수정됐습니다!');
+  } catch(e){alert('오류: '+e.message);}
+  showLoading(false);
+};
+
+window.deletePaymentEntry = async function(saleId, clientId, amt) {
+  if(!confirm('이 입금 내역을 삭제할까요?')) return;
+  showLoading(true);
+  try {
+    await deleteDoc(doc(db,'sales',saleId));
+    await updateDoc(doc(db,'clients',clientId),{ar: increment(amt)}); // 입금 삭제 → AR 증가
+    const c = window.dbClients.find(x=>x.id===clientId);
+    if(c) c.ar = (c.ar||0) + amt;
+    closeModalDirect();
+    renderPaymentHistory();
+    renderAR();
+    showToast('🗑️ 삭제됐습니다.');
+  } catch(e){alert('오류: '+e.message);}
+  showLoading(false);
 };
 
 // ===== 입금관리 =====
