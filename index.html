@@ -3184,20 +3184,18 @@ window.saveEditSale = async function(id) {
       updateData = {...updateData, items:updatedItems, total, supply, vat, cost};
     }
     await updateDoc(doc(db,'sales',id), updateData);
-    // AR 증감: 변경된 차액만 반영
+    // AR 증감: updateData.total 기준으로 차액 계산
     const client = window.dbClients.find(c=>c.id===s.clientId);
     if(client){
+      const oldTotal = s.total||0;
+      const newTotal = updateData.total||oldTotal;
       let diff = 0;
       if(s.type==='payment'){
-        const oldAmt = s.total||0;
-        const newAmt = parseInt((document.getElementById('es_amt')?.value||'0').replace(/[^0-9]/g,''))||0;
-        diff = -(newAmt - oldAmt); // 입금 증가 → AR 감소
+        diff = -(newTotal - oldTotal); // 입금 증가 → AR 감소
       } else if(s.type==='return'){
-        const newTotal = updateData.total||s.total||0;
-        diff = -(newTotal - (s.total||0)); // 반품 증가 → AR 감소
+        diff = -(newTotal - oldTotal); // 반품 증가 → AR 감소
       } else {
-        const newTotal = updateData.total||s.total||0;
-        diff = newTotal - (s.total||0); // 매출 증가 → AR 증가
+        diff = newTotal - oldTotal; // 매출 증가 → AR 증가
       }
       if(diff !== 0){
         await updateDoc(doc(db,'clients',s.clientId),{ar: increment(diff)});
