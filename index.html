@@ -3202,11 +3202,16 @@ window.saveEditSale = async function(id) {
         client.ar = (client.ar||0) + diff;
       }
     }
+    // 로컬 dbSales도 즉시 업데이트
+    const idx = window.dbSales.findIndex(x=>x.id===id);
+    if(idx>=0) window.dbSales[idx] = {...window.dbSales[idx], ...updateData};
     closeModalDirect();
     const from = document.getElementById('ledgerFrom')?.value || getKSTMonthStart();
     const to   = document.getElementById('ledgerTo')?.value   || getKSTDate();
+    window.salesRange = {from:'', to:''}; // 강제 재로드
     await fetchSalesRange(from, to);
     renderLedger();
+    renderAR();
     showToast('✅ 수정됐습니다!');
   } catch(e){alert('오류: '+e.message);}
   showLoading(false);
@@ -3253,6 +3258,7 @@ window.deleteSale = async function(id) {
     const end=endEl?endEl.value:getKSTDate();
     await fetchSalesRange(start,end);
     renderLedger();
+    renderAR();
     alert('✅ 삭제됐습니다.');
   } catch(e) { alert('오류: '+e.message); }
   showLoading(false);
