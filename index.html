@@ -632,6 +632,11 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
           style="padding-left:40px;border-radius:12px;border:none;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);" />
       </div>
     </div>
+    <!-- 정렬 토글 -->
+    <div style="padding:0 12px 10px;display:flex;gap:8px;">
+      <button id="arSortAmt" onclick="setArSort('amount')" style="flex:1;padding:9px;border:2px solid #e53935;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">💰 금액순</button>
+      <button id="arSortName" onclick="setArSort('name')" style="flex:1;padding:9px;border:2px solid transparent;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">가나다순</button>
+    </div>
     <!-- 리스트 -->
     <div id="arList" style="padding:0 12px;"></div>
   </div>
@@ -2328,6 +2333,23 @@ window.playErrorBeep = function() {
   } catch(e) {}
 };
 
+window.arSortMode = window.arSortMode || 'amount';
+window.setArSort = function(mode){
+  window.arSortMode = mode;
+  const amtBtn = document.getElementById('arSortAmt');
+  const nameBtn = document.getElementById('arSortName');
+  if(amtBtn && nameBtn){
+    if(mode==='amount'){
+      amtBtn.style.border='2px solid #e53935';
+      nameBtn.style.border='2px solid transparent';
+    } else {
+      nameBtn.style.border='2px solid #e53935';
+      amtBtn.style.border='2px solid transparent';
+    }
+  }
+  renderAR(document.querySelector('#page-ar .input-field')?.value||'');
+};
+
 window.renderAR = function(filter='') {
   const allC=window.dbClients.filter(c=>!filter||c.name.includes(filter));
   // client.ar = 현재 잔액 (항상 최신)
@@ -2335,15 +2357,19 @@ window.renderAR = function(filter='') {
   const list=allC.map(c=>{
     return{...c,calcAR:c.ar||0};
   });
-  list.sort((a,b)=>{
-    // 미수 먼저(높은 순) → 선입금(낮은 순) → 완납 맨 아래
-    const aGrp = a.calcAR>0?0:a.calcAR<0?1:2;
-    const bGrp = b.calcAR>0?0:b.calcAR<0?1:2;
-    if(aGrp!==bGrp) return aGrp-bGrp;
-    if(aGrp===0) return b.calcAR-a.calcAR;
-    if(aGrp===1) return a.calcAR-b.calcAR; // 선입금 많은 순
-    return a.name.localeCompare(b.name,'ko');
-  });
+  if(window.arSortMode==='name'){
+    list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  } else {
+    list.sort((a,b)=>{
+      // 미수 먼저(높은 순) → 선입금(낮은 순) → 완납 맨 아래
+      const aGrp = a.calcAR>0?0:a.calcAR<0?1:2;
+      const bGrp = b.calcAR>0?0:b.calcAR<0?1:2;
+      if(aGrp!==bGrp) return aGrp-bGrp;
+      if(aGrp===0) return b.calcAR-a.calcAR;
+      if(aGrp===1) return a.calcAR-b.calcAR; // 선입금 많은 순
+      return a.name.localeCompare(b.name,'ko');
+    });
+  }
   const total=list.reduce((s,c)=>s+c.calcAR,0); // 선입금 차감한 실제 순미수금
   const arCount=list.filter(c=>c.calcAR>0).length;
   document.getElementById('arTotal').textContent=fmt(Math.max(0,total));
