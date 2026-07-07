@@ -2043,7 +2043,7 @@ window.printStatement = function() {
   const ci=window.companyInfo||{};
   const totalSupply=rows.reduce((s,r)=>s+calcVat(r.total).supply,0);
   const totalVat=rows.reduce((s,r)=>s+calcVat(r.total).vat,0);
-  const MAX_ROWS=6;
+  const MAX_ROWS=7;
 
   const makeRowsHtml = () => {
     let html='';
