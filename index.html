@@ -2419,8 +2419,8 @@ window.showARDetail = function(clientId) {
   if(window._arLpFired){window._arLpFired=false;return;}
   const c=window.dbClients.find(x=>x.id===clientId);
   if(!c)return;
-  const today=getKSTDate();       // ✅ 한국시간 오늘
-  const firstDay=getKSTDate(-1);  // ✅ 1개월 전
+  const today=getKSTDate();
+  const firstDay=new Date().getFullYear()+'-01-01'; // ✅ 당해년도 1월 1일
   document.getElementById('modalArea').innerHTML=`
     <div class="modal-overlay" onclick="closeModal(event)">
       <div class="modal" style="max-height:90vh;">
