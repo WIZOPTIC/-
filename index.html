@@ -2529,7 +2529,6 @@ window.renderARDetail = async function(clientId) {
       return `<tr style="cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">
         <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;">
           <div style="font-size:14px;font-weight:600;">${r.date.slice(2)}</div>
-          <div style="font-size:10px;color:#aaa;margin-top:1px;">▶ 세부내역</div>
         </td>
         <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:${saleColor};">${saleText}</td>
         <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;">${r.pay>0?fmt(r.pay):'-'}</td>
@@ -2683,7 +2682,6 @@ window.showARDateDetail = async function(clientId, date, ids) {
       <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="restoreARDetail('${clientId}')">×</button>
         <div class="modal-title">${date} 세부내역</div>
-        <div style="font-size:11px;color:#aaa;margin-bottom:10px;">브랜드를 누르면 모델 상세가 보여요</div>
         ${brandHtml}
         ${payHtml}
         <button class="btn btn-secondary" style="margin:4px 0 0;" onclick="restoreARDetail('${clientId}')">닫기</button>
