@@ -2017,7 +2017,7 @@ window.generateStatement = function() {
   const ci=window.companyInfo||{};
   const prevAr=(client.ar||0)-grandTotal+dayPaymentTotal;
   const janggeum=Math.max(0,prevAr)+grandTotal-dayPaymentTotal;
-  window.stmtData={client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum,ci};
+  window.stmtData={client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum,ci,stmtNo:'WO-'+date.replace(/-/g,'') + '-' + Math.random().toString(36).substring(2,6).toUpperCase()};
 
   // 미리보기
   const preview=`
@@ -2039,7 +2039,7 @@ window.generateStatement = function() {
 
 window.printStatement = function() {
   if(!window.stmtData){alert('먼저 명세표를 생성해주세요');return;}
-  const {client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum}=window.stmtData;
+  const {client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum,stmtNo}=window.stmtData;
   const ci=window.companyInfo||{};
   const totalSupply=rows.reduce((s,r)=>s+calcVat(r.total).supply,0);
   const totalVat=rows.reduce((s,r)=>s+calcVat(r.total).vat,0);
@@ -2156,9 +2156,6 @@ window.printStatement = function() {
       </table>
     </div>`;
   };
-
-  // 전표번호 생성: WO-YYYYMMDD-XXXX
-  const stmtNo = 'WO-' + date.replace(/-/g,'') + '-' + Math.random().toString(36).substring(2,6).toUpperCase();
 
   const stmtContent =
     makeStmt('공급자', stmtNo) +
