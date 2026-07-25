@@ -2632,8 +2632,8 @@ window.showARDateDetail = async function(clientId, date, ids) {
         <td style="padding:7px 4px;text-align:center;font-size:12px;">${Math.abs(m.qty)}</td>
         <td style="padding:7px 8px;text-align:right;font-size:12px;color:${mc};">${m.total<0?'-':''}${fmt(Math.abs(m.total))}</td>
         <td style="padding:4px;text-align:center;">
-          <button onclick="event.stopPropagation();openEditSaleModal('${m.txnId}')" style="padding:3px 8px;font-size:11px;background:#1976D2;color:white;border:none;border-radius:5px;cursor:pointer;margin:1px;">✏️</button>
-          <button onclick="event.stopPropagation();deleteTxnFromAR('${m.txnId}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:3px 8px;font-size:11px;background:#e53935;color:white;border:none;border-radius:5px;cursor:pointer;margin:1px;">🗑️</button>
+          <button onclick="event.stopPropagation();openEditSaleModal('${m.txnId}')" style="padding:4px 10px;font-size:12px;background:#1976D2;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">수정</button>
+          <button onclick="event.stopPropagation();deleteTxnFromAR('${m.txnId}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:4px 10px;font-size:12px;background:#e53935;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">삭제</button>
         </td>
       </tr>`;
     }).join('');
@@ -2668,12 +2668,15 @@ window.showARDateDetail = async function(clientId, date, ids) {
   const payHtml = payTotal > 0 ? `
     <div style="border:1px solid #bbdefb;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#e3f2fd;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:14px;font-weight:700;color:#1976D2;">💰 입금</span>
+        <span style="font-size:14px;font-weight:700;color:#1976D2;">입금</span>
         <span style="font-size:14px;font-weight:700;color:#1976D2;">${fmt(payTotal)}</span>
       </div>
       ${payTxns.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#555;">
         <span>${fmt(p.total)}</span>
-        <button onclick="deleteTxnFromAR('${p.id}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:3px 8px;font-size:11px;background:#e53935;color:white;border:none;border-radius:5px;cursor:pointer;">🗑️</button>
+        <div style="display:flex;gap:6px;">
+          <button onclick="openEditSaleModal('${p.id}')" style="padding:4px 10px;font-size:12px;background:#1976D2;color:white;border:none;border-radius:6px;cursor:pointer;">수정</button>
+          <button onclick="deleteTxnFromAR('${p.id}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:4px 10px;font-size:12px;background:#e53935;color:white;border:none;border-radius:6px;cursor:pointer;">삭제</button>
+        </div>
       </div>`).join('')}
     </div>` : '';
 
