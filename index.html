@@ -2574,54 +2574,158 @@ window.showARTxnDetail = async function(saleId, clientId) {
 
 window.showARDateDetail = async function(clientId, date, ids) {
   const tColor={sale:'#1D9E75',payment:'#1976D2',return:'#e53935'};
-  const tLabel={sale:'매출',payment:'입금',return:'반품'};
+
   // 해당 날짜 전표들 로드
   const snaps = await Promise.all(ids.map(id=>getDoc(doc(db,'sales',id))));
   const txns = snaps.filter(s=>s.exists()).map(s=>({id:s.id,...s.data()}));
   txns.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
 
-  const rows = txns.map(s=>{
-    const isSale=s.type==='sale'||!s.type;
-    const isReturn=s.type==='return';
-    const isPay=s.type==='payment';
-    let html='';
-    if(isPay){
-      html=`<div style="padding:10px 0;font-size:15px;">입금액: <strong style="color:#1976D2;">${fmt(s.total)}</strong></div>`;
-    } else {
-      html=`<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:6px;">
-        <tr style="background:#f5f5f5;">
-          <th style="padding:6px;text-align:left;border-bottom:1px solid #ddd;">브랜드</th>
-          <th style="padding:6px;text-align:left;border-bottom:1px solid #ddd;">모델</th>
-          <th style="padding:6px;text-align:center;border-bottom:1px solid #ddd;">수량</th>
-          <th style="padding:6px;text-align:right;border-bottom:1px solid #ddd;">금액</th>
-        </tr>
-        ${(s.items||[]).map(it=>`<tr>
-          <td style="padding:5px 6px;border-bottom:1px solid #f5f5f5;">${it.brand||it.name||''}</td>
-          <td style="padding:5px 6px;border-bottom:1px solid #f5f5f5;font-size:11px;color:#666;">${it.modelNo||''} ${it.color||''}</td>
-          <td style="padding:5px 6px;border-bottom:1px solid #f5f5f5;text-align:center;">${it.qty}</td>
-          <td style="padding:5px 6px;border-bottom:1px solid #f5f5f5;text-align:right;color:${tColor[s.type||'sale']};">${isReturn?'-':''}${fmt(it.qty*it.price)}</td>
-        </tr>`).join('')}
-      </table>`;
+  // 브랜드별로 합산 (매출/반품 분리)
+  const brandMap = {}; // { brandName: { qty, total, items:[{modelNo,color,qty,total,txnId,type}] } }
+  let payTotal = 0;
+  const payTxns = [];
+
+  txns.forEach(txn => {
+    if(txn.type==='payment'){
+      payTotal += txn.total||0;
+      payTxns.push(txn);
+      return;
     }
-    return `<div style="border:1px solid #eee;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="badge badge-${s.type||'sale'}">${tLabel[s.type]||'매출'}</span>
-        <span style="font-size:14px;font-weight:700;color:${tColor[s.type||'sale']};">${isReturn?'-':''}${fmt(s.total)}</span>
+    const sign = (txn.type==='return') ? -1 : 1;
+    (txn.items||[]).forEach(it => {
+      const brand = it.brand||it.name||'기타';
+      if(!brandMap[brand]) brandMap[brand]={brand,qty:0,total:0,items:[]};
+      brandMap[brand].qty   += it.qty * sign;
+      brandMap[brand].total += it.qty * it.price * sign;
+      brandMap[brand].items.push({
+        modelNo: it.modelNo||'-',
+        color:   it.color||'-',
+        qty:     it.qty,
+        total:   it.qty*it.price,
+        txnId:   txn.id,
+        type:    txn.type||'sale'
+      });
+    });
+  });
+
+  const brands = Object.values(brandMap);
+
+  // 브랜드 HTML 생성
+  const brandHtml = brands.map((b,bi) => {
+    const isNeg = b.total < 0;
+    const color = isNeg ? '#e53935' : '#1D9E75';
+    // 모델별 합산
+    const modelMap = {};
+    b.items.forEach(it => {
+      const key = `${it.modelNo}|${it.color}|${it.txnId}|${it.type}`;
+      if(!modelMap[key]) modelMap[key]={modelNo:it.modelNo,color:it.color,qty:0,total:0,txnId:it.txnId,type:it.type};
+      const sign = it.type==='return'?-1:1;
+      modelMap[key].qty   += it.qty*sign;
+      modelMap[key].total += it.total*sign;
+    });
+    const models = Object.values(modelMap);
+
+    const modelRows = models.map(m => {
+      const mc = m.total<0?'#e53935':'#1D9E75';
+      return `<tr>
+        <td style="padding:7px 8px;font-size:12px;">${m.modelNo}</td>
+        <td style="padding:7px 4px;font-size:12px;">${m.color}</td>
+        <td style="padding:7px 4px;text-align:center;font-size:12px;">${Math.abs(m.qty)}</td>
+        <td style="padding:7px 8px;text-align:right;font-size:12px;color:${mc};">${m.total<0?'-':''}${fmt(Math.abs(m.total))}</td>
+        <td style="padding:4px;text-align:center;">
+          <button onclick="event.stopPropagation();openEditSaleModal('${m.txnId}')" style="padding:3px 8px;font-size:11px;background:#1976D2;color:white;border:none;border-radius:5px;cursor:pointer;margin:1px;">✏️</button>
+          <button onclick="event.stopPropagation();deleteTxnFromAR('${m.txnId}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:3px 8px;font-size:11px;background:#e53935;color:white;border:none;border-radius:5px;cursor:pointer;margin:1px;">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div style="border:1px solid #e0e0e0;border-radius:10px;margin-bottom:8px;overflow:hidden;">
+      <div onclick="toggleBrandDetail(${bi})" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#fafafa;cursor:pointer;">
+        <div>
+          <span style="font-size:14px;font-weight:700;">${b.brand}</span>
+          <span style="font-size:12px;color:#888;margin-left:8px;">${Math.abs(b.qty)}개</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:14px;font-weight:700;color:${color};">${b.total<0?'-':''}${fmt(Math.abs(b.total))}</span>
+          <span id="arrow-${bi}" style="font-size:12px;color:#aaa;">▼</span>
+        </div>
       </div>
-      ${html}
-      <button class="btn btn-red" style="margin:4px 0 0;padding:6px 14px;font-size:12px;" onclick="deleteTxn('${s.id}','${clientId}')">🗑️ 삭제</button>
+      <div id="brand-detail-${bi}" style="display:none;padding:4px 0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr style="background:#f5f5f5;font-size:11px;">
+            <th style="padding:6px 8px;text-align:left;">모델번호</th>
+            <th style="padding:6px 4px;text-align:left;">컬러</th>
+            <th style="padding:6px 4px;text-align:center;">수량</th>
+            <th style="padding:6px 8px;text-align:right;">금액</th>
+            <th style="padding:6px 4px;text-align:center;">수정/삭제</th>
+          </tr>
+          ${modelRows}
+        </table>
+      </div>
     </div>`;
   }).join('');
 
-  document.getElementById('modalArea').innerHTML=
-    `<div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
+  // 입금 HTML
+  const payHtml = payTotal > 0 ? `
+    <div style="border:1px solid #bbdefb;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#e3f2fd;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:14px;font-weight:700;color:#1976D2;">💰 입금</span>
+        <span style="font-size:14px;font-weight:700;color:#1976D2;">${fmt(payTotal)}</span>
+      </div>
+      ${payTxns.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:12px;color:#555;">
+        <span>${fmt(p.total)}</span>
+        <button onclick="deleteTxnFromAR('${p.id}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:3px 8px;font-size:11px;background:#e53935;color:white;border:none;border-radius:5px;cursor:pointer;">🗑️</button>
+      </div>`).join('')}
+    </div>` : '';
+
+  document.getElementById('modalArea').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal(event)" style="pointer-events:auto;">
       <div class="modal" onclick="event.stopPropagation()" style="pointer-events:auto;position:relative;z-index:201;">
         <button class="modal-close" onclick="restoreARDetail('${clientId}')">×</button>
         <div class="modal-title">${date} 세부내역</div>
-        ${rows}
+        <div style="font-size:11px;color:#aaa;margin-bottom:10px;">브랜드를 누르면 모델 상세가 보여요</div>
+        ${brandHtml}
+        ${payHtml}
         <button class="btn btn-secondary" style="margin:4px 0 0;" onclick="restoreARDetail('${clientId}')">닫기</button>
       </div>
     </div>`;
+};
+
+window.toggleBrandDetail = function(idx) {
+  const el = document.getElementById('brand-detail-'+idx);
+  const arrow = document.getElementById('arrow-'+idx);
+  if(!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+};
+
+window.deleteTxnFromAR = async function(txnId, clientId, date, ids) {
+  if(!confirm('이 전표를 삭제하시겠습니까?')) return;
+  try {
+    await deleteDoc(doc(db,'sales',txnId));
+    // AR 잔액 재계산 (silent)
+    const c=window.dbClients.find(x=>x.id===clientId);
+    if(c){
+      const qAll=query(collection(db,'sales'),where('clientId','==',clientId));
+      const snapAll=await getDocs(qAll);
+      let bal=c.arInit||0;
+      snapAll.docs.forEach(d=>{
+        const s=d.data();
+        if(s.type==='sale'||!s.type) bal+=s.total||0;
+        else if(s.type==='return')   bal-=s.total||0;
+        else if(s.type==='payment')  bal-=s.total||0;
+      });
+      await updateDoc(doc(db,'clients',clientId),{ar:bal});
+    }
+    showToast('✅ 삭제 완료','#1D9E75');
+    const newIds = ids.filter(id=>id!==txnId);
+    if(newIds.length>0){
+      await showARDateDetail(clientId, date, newIds);
+    } else {
+      restoreARDetail(clientId);
+    }
+  } catch(e){ alert('삭제 실패: '+e.message); }
 };
 
 window.restoreARDetail = function(clientId) {
