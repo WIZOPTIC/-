@@ -207,7 +207,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .stmt-company-table .lbl{background:#f5f5f5;width:60px;font-weight:600;text-align:center;}
 .stmt-items-table{width:100%;border-collapse:collapse;margin-bottom:2mm;font-size:8.5pt;}
 .stmt-items-table th{background:#efefef;border:1px solid #444;padding:3px 4px;text-align:center;font-weight:700;}
-.stmt-items-table td{border:1px solid #ccc;padding:2.5px 5px;}
+.stmt-items-table td{border:1px solid #333;padding:2.5px 5px;}
 .stmt-items-table td.center{text-align:center;}
 .stmt-items-table td.right{text-align:right;}
 .stmt-items-table td.empty{background:#fafafa;}
@@ -2081,8 +2081,8 @@ window.printStatement = function() {
     const themeColor = isSupplier ? '#1565C0' : '#c62828';      // 파랑 / 빨강
     const themeBg    = isSupplier ? '#e3f2fd' : '#ffebee';      // 연파랑 / 연빨강
     const themeLight = isSupplier ? '#bbdefb' : '#ffcdd2';      // 테두리용
-    const L = `border:1px solid ${themeColor};padding:2px 3px;background:${themeBg};font-weight:600;text-align:center;vertical-align:middle;white-space:nowrap;font-size:7pt;color:${themeColor};`;
-    const V = `border:1px solid ${themeLight};padding:2px 4px;text-align:center;vertical-align:middle;font-size:8pt;overflow:hidden;white-space:nowrap;`;
+    const L = `border:1px solid #333;padding:2px 3px;background:${themeBg};font-weight:600;text-align:center;vertical-align:middle;white-space:nowrap;font-size:7pt;color:${themeColor};`;
+    const V = `border:1px solid #333;padding:2px 4px;text-align:center;vertical-align:middle;font-size:8pt;overflow:hidden;white-space:nowrap;`;
     const RH = 'height:6mm;';
     return `
     <div style="width:100%;height:140mm;padding:4mm 4mm 3mm;box-sizing:border-box;overflow:hidden;border-left:4px solid ${themeColor};">
@@ -2097,7 +2097,7 @@ window.printStatement = function() {
         <span style="border-bottom:2px solid ${themeColor};padding:0 10mm 0.5mm;color:${themeColor};">거 래 명 세 표</span>
       </div>
       <div style="font-size:9pt;margin-bottom:0.8mm;"><strong>${client.name}</strong> 귀하</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:1mm;table-layout:fixed;border:1px solid ${themeColor};">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:1mm;table-layout:fixed;border:1px solid #333;">
         <colgroup><col style="width:13%"><col style="width:20%"><col style="width:8%"><col style="width:18%"><col style="width:9%"><col style="width:32%"></colgroup>
         <tr style="${RH}">
           <td style="${L}">사업자번호</td><td style="${V}">${ci.biz||''}</td>
@@ -2111,51 +2111,51 @@ window.printStatement = function() {
         </tr>
         <tr style="${RH}">
           <td style="${L}">주&nbsp;&nbsp;&nbsp;소</td>
-          <td colspan="5" style="border:1px solid ${themeLight};padding:2px 4px 2px 8px;text-align:left;vertical-align:middle;font-size:8pt;">${ci.addr||''}</td>
+          <td colspan="5" style="border:1px solid #333;padding:2px 4px 2px 8px;text-align:left;vertical-align:middle;font-size:8pt;">${ci.addr||''}</td>
         </tr>
       </table>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:1mm;font-size:8pt;border:1px solid ${themeColor};">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:1mm;font-size:8pt;border:1px solid #333;">
         <thead>
           <tr style="${RH}">
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:26%;white-space:nowrap;color:${themeColor};">품&nbsp;&nbsp;목</th>
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:8%;color:${themeColor};">수량</th>
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:15%;color:${themeColor};">단&nbsp;가</th>
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:18%;color:${themeColor};">공급가액</th>
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:13%;color:${themeColor};">세&nbsp;액</th>
-            <th style="background:${themeBg};border:1px solid ${themeColor};padding:2px 3px;text-align:center;width:20%;color:${themeColor};">비&nbsp;고</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:26%;white-space:nowrap;color:${themeColor};">품&nbsp;&nbsp;목</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:8%;color:${themeColor};">수량</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:15%;color:${themeColor};">단&nbsp;가</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:18%;color:${themeColor};">공급가액</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:13%;color:${themeColor};">세&nbsp;액</th>
+            <th style="background:${themeBg};border:1px solid #333;padding:2px 3px;text-align:center;width:20%;color:${themeColor};">비&nbsp;고</th>
           </tr>
         </thead>
         <tbody>${makeRowsHtml()}</tbody>
         <tfoot>
           <tr style="${RH}">
-            <td colspan="3" style="border:1px solid ${themeColor};padding:2px 4px;background:${themeBg};font-weight:700;text-align:center;color:${themeColor};">합&nbsp;&nbsp;계</td>
-            <td style="border:1px solid ${themeColor};padding:2px 4px;text-align:right;font-weight:700;">${fmt(totalSupply)}</td>
-            <td style="border:1px solid ${themeColor};padding:2px 4px;text-align:right;font-weight:700;">${fmt(totalVat)}</td>
-            <td style="border:1px solid ${themeColor};padding:2px 4px;"></td>
+            <td colspan="3" style="border:1px solid #333;padding:2px 4px;background:${themeBg};font-weight:700;text-align:center;color:${themeColor};">합&nbsp;&nbsp;계</td>
+            <td style="border:1px solid #333;padding:2px 4px;text-align:right;font-weight:700;">${fmt(totalSupply)}</td>
+            <td style="border:1px solid #333;padding:2px 4px;text-align:right;font-weight:700;">${fmt(totalVat)}</td>
+            <td style="border:1px solid #333;padding:2px 4px;"></td>
           </tr>
         </tfoot>
       </table>
-      <table style="width:100%;border-collapse:collapse;font-size:8pt;border:1px solid ${themeColor};">
+      <table style="width:100%;border-collapse:collapse;font-size:8pt;border:1px solid #333;">
         <tr style="${RH}">
-          <td rowspan="4" style="border:1px solid ${themeColor};padding:2px 6px;width:42%;vertical-align:middle;font-size:9pt;">
+          <td rowspan="4" style="border:1px solid #333;padding:2px 6px;width:42%;vertical-align:middle;font-size:9pt;">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;">
               <span>인수자확인</span><span style="margin-left:auto;">인)</span>
             </div>
           </td>
-          <td style="border:1px solid ${themeColor};padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;width:50px;color:${themeColor};">전 잔 금</td>
-          <td style="border:1px solid ${themeColor};padding:2px 5px;text-align:right;width:85px;">${fmt(prevArAmt)}</td>
+          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;width:50px;color:${themeColor};">전 잔 금</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;width:85px;">${fmt(prevArAmt)}</td>
         </tr>
         <tr style="${RH}">
-          <td style="border:1px solid ${themeColor};padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;color:${themeColor};">합&nbsp;&nbsp;&nbsp;계</td>
-          <td style="border:1px solid ${themeColor};padding:2px 5px;text-align:right;">${fmt(grandTotal)}</td>
+          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;color:${themeColor};">합&nbsp;&nbsp;&nbsp;계</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;">${fmt(grandTotal)}</td>
         </tr>
         <tr style="${RH}">
-          <td style="border:1px solid ${themeColor};padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;color:${themeColor};">입&nbsp;&nbsp;&nbsp;금</td>
-          <td style="border:1px solid ${themeColor};padding:2px 5px;text-align:right;color:#1565C0;font-weight:${dayPaymentTotal>0?'700':'400'};">${paymentDisplay}</td>
+          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;color:${themeColor};">입&nbsp;&nbsp;&nbsp;금</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;color:#1565C0;font-weight:${dayPaymentTotal>0?'700':'400'};">${paymentDisplay}</td>
         </tr>
         <tr style="${RH}">
-          <td style="border:1px solid ${themeColor};padding:2px 5px;background:${themeBg};text-align:center;font-weight:700;white-space:nowrap;color:#c62828;">잔&nbsp;&nbsp;&nbsp;금</td>
-          <td style="border:1px solid ${themeColor};padding:2px 5px;text-align:right;font-weight:700;color:#c62828;">${fmt(janggeum)}</td>
+          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:700;white-space:nowrap;color:#c62828;">잔&nbsp;&nbsp;&nbsp;금</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;font-weight:700;color:#c62828;">${fmt(janggeum)}</td>
         </tr>
       </table>
     </div>`;
