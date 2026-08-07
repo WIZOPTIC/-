@@ -2078,9 +2078,9 @@ window.printStatement = function() {
     const prevArAmt=Math.max(0,prevAr);
     const paymentDisplay=dayPaymentTotal>0?fmt(dayPaymentTotal):'';
     const isSupplier = copyLabel === '공급자';
-    const themeColor = isSupplier ? '#1565C0' : '#c62828';      // 파랑 / 빨강
-    const themeBg    = isSupplier ? '#e3f2fd' : '#ffebee';      // 연파랑 / 연빨강
-    const themeLight = isSupplier ? '#bbdefb' : '#ffcdd2';      // 테두리용
+    const themeColor = '#1565C0';      // 파랑 (공급자/공급받는자 동일)
+    const themeBg    = '#e3f2fd';      // 연파랑
+    const themeLight = '#bbdefb';      // 테두리용
     const L = `border:1px solid #333;padding:2px 3px;background:${themeBg};font-weight:600;text-align:center;vertical-align:middle;white-space:nowrap;font-size:7pt;color:${themeColor};`;
     const V = `border:1px solid #333;padding:2px 4px;text-align:center;vertical-align:middle;font-size:8pt;overflow:hidden;white-space:nowrap;`;
     const RH = 'height:6mm;';
@@ -2515,16 +2515,12 @@ window.renderARDetail = async function(clientId) {
   const finalBal=running;
   document.getElementById('arDetailContent').innerHTML=
     '<div style="background:#f0faf6;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;">'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">이월 잔액</span><span style="font-weight:600;">'+(prevBal<0?'<span style="color:#1976D2;">-'+fmt(Math.abs(prevBal))+'</span>':fmt(prevBal))+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">총 매출</span><span style="color:#1D9E75;font-weight:600;">+'+fmt(tSale)+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#888;">총 반품</span><span style="color:#e53935;">-'+fmt(tReturn)+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;border-top:1px solid #c8f0e0;padding-top:6px;margin-bottom:6px;"><span style="color:#888;">총 입금</span><span style="color:#1976D2;font-weight:600;">-'+fmt(tPay)+'</span></div>'+
-    '<div style="display:flex;justify-content:space-between;border-top:2px solid #1D9E75;padding-top:8px;"><span style="font-weight:700;font-size:14px;">현재 잔액</span><span style="font-weight:700;font-size:16px;color:'+(finalBal<0?'#1976D2':'#e53935')+';">'+(finalBal<0?'-'+fmt(Math.abs(finalBal)):fmt(finalBal))+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;"><span style="font-weight:700;font-size:14px;">현재 잔액</span><span style="font-weight:700;font-size:16px;color:'+(finalBal<0?'#1976D2':'#e53935')+';">'+(finalBal<0?'-'+fmt(Math.abs(finalBal)):fmt(finalBal))+'</span></div>'+
     (finalBal<0?'<div style="text-align:right;font-size:11px;color:#1976D2;margin-top:2px;">💙 선입금 상태</div>':'')+
     '</div>'+
     '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'+
     '<tr style="background:#f5f5f5;"><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;">날짜</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#1D9E75;">매출</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#1976D2;">입금</th><th style="padding:10px 8px;border-bottom:2px solid #ddd;text-align:center;font-size:13px;font-weight:700;color:#e53935;">잔금</th></tr>'+
-    '<tr><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;color:#888;font-size:13px;text-align:center;">이월</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:9px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">-</td><td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:700;color:'+(prevBal<0?'#1976D2':'inherit')+';">'+( prevBal<0?'-'+fmt(Math.abs(prevBal)):fmt(prevBal))+'</td></tr>'+
+    
     dateRows.map(r=>{
       const netSale=r.sale;
       const saleColor=netSale>0?'#1D9E75':netSale<0?'#e53935':'#bbb';
