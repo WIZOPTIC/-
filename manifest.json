@@ -9,15 +9,15 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI4MCIgZmlsbD0iI2Y1ZjVmMCIvPgogIDxyZWN0IHg9IjI4IiB5PSIyOCIgd2lkdGg9IjQ1NiIgaGVpZ2h0PSI0NTYiIHJ4PSIzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMUQ5RTc1IiBzdHJva2Utd2lkdGg9IjE4Ii8+CiAgPHRleHQgeD0iMjU2IiB5PSIzMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjE0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzFEOUU3NSIgbGV0dGVyLXNwYWNpbmc9IjYiPldJWjwvdGV4dD4KPC9zdmc+",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI4MCIgZmlsbD0iI2Y1ZjVmMCIvPgogIDxyZWN0IHg9IjI4IiB5PSIyOCIgd2lkdGg9IjQ1NiIgaGVpZ2h0PSI0NTYiIHJ4PSIzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMUQ5RTc1IiBzdHJva2Utd2lkdGg9IjE4Ii8+CiAgPHRleHQgeD0iMjU2IiB5PSIzMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjE0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzFEOUU3NSIgbGV0dGVyLXNwYWNpbmc9IjYiPldJWjwvdGV4dD4KPC9zdmc+",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
