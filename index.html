@@ -47,11 +47,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .page-body{flex:1;overflow-y:auto;padding-bottom:20px;}
 
 .section-label{font-size:12px;color:#888;font-weight:600;padding:14px 16px 6px;letter-spacing:0.5px;}
-.input-field{width:100%;padding:13px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:15px;background:white;outline:none;}
+.input-field{width:100%;padding:13px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:15px;font-weight:700;color:#222;background:white;outline:none;}
 .input-field:focus{border-color:#1D9E75;}
+.input-field::placeholder{font-weight:400;color:#bbb;}
+input[type="date"].input-field{color:#222;-webkit-text-fill-color:#222;font-size:17px;font-weight:700;letter-spacing:normal;font-family:inherit;}
 .select-field{width:calc(100% - 32px);margin:0 16px 10px;padding:13px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:15px;background:white;outline:none;}
-.date-wrap{display:flex;gap:8px;padding:0 16px 10px;}
-.date-wrap input{flex:1;padding:12px 10px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:white;outline:none;}
+.date-wrap{display:flex;gap:8px;padding:0 12px 10px;}
+.date-wrap input{flex:1;padding:12px 10px;border:1px solid #e0e0e0;border-radius:10px;font-size:17px;font-weight:700;color:#222;-webkit-text-fill-color:#222;background:white;outline:none;letter-spacing:normal;font-family:inherit;}
 .date-wrap input:focus{border-color:#1D9E75;}
 .btn{width:calc(100% - 32px);margin:8px 16px;padding:15px;border-radius:10px;font-size:16px;font-weight:600;border:none;cursor:pointer;}
 .btn-primary{background:#1D9E75;color:white;}
@@ -126,7 +128,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .bottom-tab.active{color:#1D9E75;border-bottom:2px solid #1D9E75;}
 
 /* 통계 */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .stat-card{background:white;border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
 .stat-label{font-size:12px;color:#888;margin-bottom:5px;}
 .stat-value{font-size:20px;font-weight:700;}
@@ -173,8 +175,10 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:16px;color:#222;}
 .modal-close{float:right;background:none;border:none;font-size:26px;cursor:pointer;color:#aaa;margin-top:-4px;}
 .field-label{font-size:13px;color:#666;margin-bottom:5px;font-weight:500;}
-.field-input{width:100%;padding:12px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:15px;margin-bottom:10px;background:white;outline:none;}
+.field-input{width:100%;padding:12px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:15px;font-weight:700;color:#222;margin-bottom:10px;background:white;outline:none;}
 .field-input:focus{border-color:#1D9E75;}
+.field-input::placeholder{font-weight:400;color:#bbb;}
+input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size:17px;font-weight:700;letter-spacing:normal;font-family:inherit;}
 .field-row{display:flex;gap:8px;}
 .field-row>div{flex:1;}
 
@@ -219,12 +223,13 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .stmt-cut{text-align:center;font-size:9pt;color:#888;border-top:1.5px dashed #aaa;border-bottom:1.5px dashed #aaa;padding:1.5mm 0;margin:0 7mm;letter-spacing:3px;}
 
 /* 거래처 검색 셀렉터 */
-.client-search-wrap{position:relative;width:calc(100% - 32px);margin:0 16px 10px;}
-.client-search-input{width:100%;padding:15px 16px;border:1px solid #e0e0e0;border-radius:10px;font-size:17px;background:white;outline:none;box-sizing:border-box;}
+.client-search-wrap{position:relative;width:100%;margin:0 0 10px;}
+.client-search-input{width:100%;padding:15px 16px;border:1px solid #e0e0e0;border-radius:10px;font-size:16px;font-weight:700;color:#222;background:white;outline:none;box-sizing:border-box;}
 .client-search-input:focus{border-color:#1D9E75;}
+.client-search-input::placeholder{font-weight:400;color:#bbb;}
 .client-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #1D9E75;border-top:none;border-radius:0 0 10px 10px;max-height:260px;overflow-y:auto;z-index:150;box-shadow:0 4px 12px rgba(0,0,0,0.12);display:none;}
-.client-dropdown-item{padding:14px 16px;font-size:16px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#222;}
-.client-dropdown-item:hover{background:#f0faf6;color:#1D9E75;font-weight:600;}
+.client-dropdown-item{padding:14px 16px;font-size:16px;font-weight:700;color:#222;cursor:pointer;border-bottom:1px solid #f5f5f5;}
+.client-dropdown-item:hover{background:#f0faf6;color:#1D9E75;}
 .client-dropdown-item.selected{background:#e8f5e9;color:#1D9E75;font-weight:700;}
 .client-dropdown-empty{padding:14px 16px;font-size:14px;color:#aaa;text-align:center;}
 .empty-icon{font-size:50px;margin-bottom:12px;}
@@ -334,7 +339,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
       <div style="padding:14px 16px 0;">
         <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">날짜</div>
         <input type="date" class="input-field" id="saleDate"
-          style="margin:0;padding:13px 14px;font-size:15px;border-radius:10px;border:1.5px solid #e8e8e8;width:100%;box-sizing:border-box;" />
+          style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;width:100%;box-sizing:border-box;" />
       </div>
       <!-- 구분선 -->
       <div style="height:1px;background:#f5f5f5;margin:14px 16px 0;"></div>
@@ -347,7 +352,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
             oninput="filterClientDropdown('clientSearchInput','clientDropdown','clientSelect')"
             onfocus="openClientDropdown('clientSearchInput','clientDropdown','clientSelect')"
             onblur="closeClientDropdownDelay('clientDropdown')"
-            style="font-size:15px;padding:13px 14px;border:1.5px solid #e8e8e8;border-radius:10px;" />
+            style="font-size:17px;padding:13px 14px;font-weight:700;border:1.5px solid #e8e8e8;border-radius:10px;" />
           <div class="client-dropdown" id="clientDropdown"></div>
           <input type="hidden" id="clientSelect" />
         </div>
@@ -446,7 +451,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
     <span class="page-title">매출내역</span>
   </div>
   <div class="page-body" style="padding-bottom:80px;">
-    <div class="date-wrap" style="padding-top:10px;">
+    <div class="date-wrap" style="padding-top:10px;padding-left:12px;padding-right:12px;padding-bottom:10px;">
       <input type="date" id="ledgerFrom" />
       <span style="line-height:44px;color:#888;">~</span>
       <input type="date" id="ledgerTo" />
@@ -457,7 +462,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
       <div class="chip" onclick="switchLedgerTab(this,'byClient')">업체별</div>
       <div class="chip" onclick="switchLedgerTab(this,'byProduct')">상품별</div>
     </div>
-    <div id="ledgerSummary" style="display:none;margin:0 12px 8px;">
+    <div id="ledgerSummary" style="display:none;margin:0 12px;padding:10px 0 8px;">
       <div class="stat-grid">
         <div class="stat-card" style="text-align:right;">
           <div class="stat-label">매출</div>
@@ -476,6 +481,25 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
           <div class="stat-value blue" id="sumRate">0%</div>
         </div>
       </div>
+    </div>
+    <!-- 일계표 카드 -->
+    <div id="dailySummaryCard" style="display:none;margin:0 12px 10px;background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;">
+      <div id="dailySummaryTitle" style="background:#1D9E75;color:white;padding:9px 14px;font-size:13px;font-weight:700;letter-spacing:0.5px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #f0f0f0;">
+        <div style="padding:10px 12px;text-align:right;border-right:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">매출</div>
+          <div id="dailySale" style="font-size:15px;font-weight:700;color:#1D9E75;">₩0</div>
+        </div>
+        <div style="padding:10px 12px;text-align:right;border-right:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">반품</div>
+          <div id="dailyReturn" style="font-size:15px;font-weight:700;color:#e53935;">₩0</div>
+        </div>
+        <div style="padding:10px 12px;text-align:right;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">입금</div>
+          <div id="dailyPayment" style="font-size:15px;font-weight:700;color:#1976D2;">₩0</div>
+        </div>
+      </div>
+      <div id="dailyBrandList" style="border-top:1px solid #f0f0f0;padding-bottom:6px;"></div>
     </div>
     <div id="ledgerList"></div>
     <div style="height:48px;"></div>
@@ -521,13 +545,13 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
   <div style="padding:12px;flex:1;overflow-y:auto;padding-bottom:24px;">
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금일자</div>
-      <input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;">
+      <input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;padding:15px 16px;font-size:17px;font-weight:700;">
     </div>
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">거래처 선택</div>
       <div class="client-search-wrap" style="margin:0;">
         <input class="field-input" id="paymentClientInput" placeholder="거래처 검색..." autocomplete="off"
-          style="font-size:17px;padding:15px 16px;margin:0;"
+          style="font-size:17px;padding:15px 16px;margin:0;font-weight:700;"
           oninput="filterClientDropdown('paymentClientInput','paymentClientDrop','paymentClientId')"
           onfocus="openClientDropdown('paymentClientInput','paymentClientDrop','paymentClientId')"
           onblur="closeClientDropdownDelay('paymentClientDrop')">
@@ -627,15 +651,16 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
     <!-- 검색 -->
     <div style="padding:0 12px 12px;">
       <div style="position:relative;">
-        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;color:#bbb;">🔍</span>
+        
         <input class="input-field" placeholder="거래처 검색..." oninput="renderAR(this.value)"
-          style="padding-left:40px;border-radius:12px;border:none;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);" />
+          style="padding-left:16px;border-radius:12px;border:none;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);" />
       </div>
     </div>
     <!-- 정렬 토글 -->
     <div style="padding:0 12px 10px;display:flex;gap:8px;">
-      <button id="arSortAmt" onclick="setArSort('amount')" style="flex:1;padding:9px;border:2px solid #e53935;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">💰 금액순</button>
-      <button id="arSortName" onclick="setArSort('name')" style="flex:1;padding:9px;border:2px solid transparent;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">가나다순</button>
+      <button id="arSortAmt" onclick="setArSort('amount')" style="flex:1;padding:9px;border:2px solid #e53935;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">금액</button>
+      <button id="arSortName" onclick="setArSort('name')" style="flex:1;padding:9px;border:2px solid transparent;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">가나다</button>
+      <button id="arSortPay" onclick="setArSort('payment')" style="flex:1;padding:9px;border:2px solid transparent;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#1D9E75;">결제일</button>
     </div>
     <!-- 리스트 -->
     <div id="arList" style="padding:0 12px;"></div>
@@ -785,21 +810,22 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 window.dbClients=[]; window.dbProducts=[]; window.dbSales=[]; window.barcodeMap={};
+
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
 window.currentLedgerTab='byDate'; window.stmtData=null;
 
 // 오늘 날짜
-const today = getKSTDate(); // ✅ 한국시간 오늘
+const today = getKSTDate();
 document.getElementById('saleDate').value = today;
 document.getElementById('stmtDate').value = today;
 const _kstNow = new Date(new Date().getTime() + 9*60*60*1000);
 document.getElementById('homeDate').textContent = _kstNow.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
 
-// 날짜 범위 기본값: 1개월 전~오늘 (한국시간)
-const firstDay = getKSTMonthStart(); // ✅ 이번달 1일
+// 날짜 범위 기본값
+const firstDay = getKSTMonthStart();
 document.getElementById('ledgerFrom').value = firstDay;
 document.getElementById('ledgerTo').value = today;
-document.getElementById('statsFrom').value = firstDay; // 이번달 1일
+document.getElementById('statsFrom').value = firstDay;
 document.getElementById('statsTo').value = today;
 
 // 설정 로드
@@ -916,6 +942,9 @@ window.showHome = function() {
   if(typeof clearSession==='function') clearSession();
   const m=document.getElementById('modalArea');
   if(m&&m.innerHTML.trim()) m.innerHTML='';
+  // 항상 홈 상태 2개 유지 → popstate 안정적으로 감지
+  history.replaceState({page:'home'},'');
+  history.pushState({page:'home'},'');
 };
 window.showPage = function(name) {
   document.getElementById('home').style.display='none';
@@ -932,18 +961,18 @@ window.showPage = function(name) {
     setTimeout(()=>{const b=document.getElementById('barcodeInput');if(b)b.focus();},200);
   }
   if(name==='ledger'){
-    document.getElementById('ledgerFrom').value=getKSTMonthStart(); // ✅ 이번달 1일
-    document.getElementById('ledgerTo').value=td;  // ✅ 종료일 오늘로
+    document.getElementById('ledgerFrom').value=getKSTMonthStart();
+    document.getElementById('ledgerTo').value=td;
     renderLedger();
   }
   if(name==='stats'){
-    document.getElementById('statsFrom').value=getKSTMonthStart(); // ✅ 이번달 1일
-    document.getElementById('statsTo').value=td;   // ✅ 종료일 오늘로
+    document.getElementById('statsFrom').value=getKSTMonthStart();
+    document.getElementById('statsTo').value=td;
     renderStats();
   }
   if(name==='clients') renderClients();
   if(name==='products') renderProducts();
-  if(name==='ar') renderAR();
+  if(name==='ar'){ window.arPaymentMap=null; window.loadARPaymentMap().then(()=>renderAR()); }
   if(name==='payment'){
     document.getElementById('paymentDate').value=td;
     document.getElementById('paymentClientInput').value='';
@@ -973,6 +1002,7 @@ window.showPage = function(name) {
   history.pushState({page:name},'');
 };
 history.replaceState({page:'home'},'');
+history.pushState({page:'home'},'');
 window.showExitConfirm = function() {
   const m=document.getElementById('modalArea');
   if(!m) return;
@@ -996,14 +1026,24 @@ window.showExitConfirm = function() {
   box.appendChild(btns);overlay.appendChild(box);
   document.body.appendChild(overlay);
 };
-window.addEventListener('popstate',function(){
+window.addEventListener('popstate',function(e){
   const m=document.getElementById('modalArea');
-  if(m&&m.innerHTML.trim()){closeModalDirect();const ap=document.querySelector('[id^="page-"][style*="flex"]');history.pushState({page:ap?ap.id.replace('page-',''):'home'},'');return;}
+  // 모달 열려있으면 닫기
+  if(m&&m.innerHTML.trim()){
+    closeModalDirect();
+    const ap=document.querySelector('[id^="page-"][style*="flex"]');
+    history.pushState({page:ap?ap.id.replace('page-',''):'home'},'');
+    return;
+  }
+  // 하위 페이지에 있으면 홈으로
   const active=document.querySelector('[id^="page-"][style*="flex"]');
-  if(active){showHome();history.replaceState({page:'home'},'');history.pushState({page:'home'},'');return;}
+  if(active){
+    showHome();
+    return;
+  }
   // 홈에서 뒤로가기 → 종료 팝업
   const existOverlay=document.getElementById('exitOverlay');
-  if(existOverlay){existOverlay.remove();return;}
+  if(existOverlay){existOverlay.remove();history.pushState({page:'home'},'');return;}
   showExitConfirm();
   history.pushState({page:'home'},'');
 });
@@ -1400,7 +1440,9 @@ window.renderCart = function() {
           onclick="this.select()">
         <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
       </div>
-      <div class="cart-price" style="color:#1D9E75;">${fmt(item.qty*item.price)}</div>
+      <div onclick="editPrice(${i})" style="cursor:pointer;text-align:right;">
+        <div class="cart-price" style="color:#1D9E75;">${fmt(item.qty*item.price)}</div>
+      </div>
       <button class="del-btn" onclick="removeItem(${i})">×</button>
     </div>`;}).join('');
 };
@@ -1409,6 +1451,11 @@ window.changeQty=(i,d)=>{window.cart[i].qty+=d;if(window.cart[i].qty<=0)window.c
 window.setQty=(i,v)=>{const n=parseInt(v)||1;if(n<=0){window.cart.splice(i,1);}else{window.cart[i].qty=n;}renderCart();};
 window.removeItem=(i)=>{window.cart.splice(i,1);renderCart();};
 window.clearCart=()=>{window.cart=[];renderCart();};
+window.editPrice=function(i){
+  const item=window.cart[i]; if(!item)return;
+  const newPrice=parseInt(prompt(`단가 수정 (현재: ${fmt(item.price)}원)`,item.price));
+  if(!isNaN(newPrice)&&newPrice>=0){window.cart[i].price=newPrice;renderCart();}
+};
 
 // 반품 상품 리스트
 window.renderReturnList = function(filter='') {
@@ -1610,6 +1657,69 @@ window.renderLedger = async function() {
   const netCost=salesCost-returnCost;   // ✅ 순원가 = 원가 - 반품원가
   const profit=netSales-netCost;
   const rate=netSales>0?Math.round(profit/netSales*100):0;
+  // 일계표 카드 업데이트
+  const today=getKSTDate();
+  const todaySales=window.dbSales.filter(s=>s.date===today);
+  const tSale=todaySales.filter(s=>s.type==='sale'||!s.type).reduce((a,s)=>a+s.total,0);
+  const tReturn=todaySales.filter(s=>s.type==='return').reduce((a,s)=>a+s.total,0);
+  const tPayment=todaySales.filter(s=>s.type==='payment').reduce((a,s)=>a+s.total,0);
+  const dCard=document.getElementById('dailySummaryCard');
+  const dTitle=document.getElementById('dailySummaryTitle');
+  const isSingleDay=from===to;
+
+  // 품목별 집계 함수
+  const buildBrandSummary = (salesArr) => {
+    const brandMap={};
+    salesArr.filter(s=>s.type==='sale'||!s.type).forEach(s=>(s.items||[]).forEach(it=>{
+      const k=it.brand||it.name||'-';
+      if(!brandMap[k])brandMap[k]={qty:0,total:0,isReturn:false};
+      brandMap[k].qty+=it.qty; brandMap[k].total+=it.qty*it.price;
+    }));
+    salesArr.filter(s=>s.type==='return').forEach(s=>(s.items||[]).forEach(it=>{
+      const k=(it.brand||it.name||'-')+' (반품)';
+      if(!brandMap[k])brandMap[k]={qty:0,total:0,isReturn:true};
+      brandMap[k].qty+=it.qty; brandMap[k].total+=it.qty*it.price;
+    }));
+    return Object.entries(brandMap).sort((a,b)=>b[1].total-a[1].total);
+  };
+
+  const renderBrandList = (brands) => {
+    if(!brands.length) return '<div style="padding:10px 14px;font-size:12px;color:#bbb;text-align:center;">판매 내역 없음</div>';
+    return brands.map(([name,v])=>`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #f0f0f0;">
+        <div style="padding:10px 12px;text-align:right;border-right:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">품목</div>
+          <div style="font-size:15px;font-weight:600;color:${v.isReturn?'#e53935':'#222'};">${name}</div>
+        </div>
+        <div style="padding:10px 12px;text-align:right;border-right:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">수량</div>
+          <div style="font-size:15px;font-weight:700;color:${v.isReturn?'#e53935':'#222'};">${v.qty}개</div>
+        </div>
+        <div style="padding:10px 12px;text-align:right;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">금액</div>
+          <div style="font-size:15px;font-weight:700;color:${v.isReturn?'#e53935':'#1D9E75'};">${v.isReturn?'-':''}${fmt(v.total)}</div>
+        </div>
+      </div>`).join('');
+  };
+
+  if(isSingleDay){
+    const daySales=filtered.filter(s=>s.type==='sale'||!s.type).reduce((a,s)=>a+s.total,0);
+    const dayReturn=filtered.filter(s=>s.type==='return').reduce((a,s)=>a+s.total,0);
+    const dayPayment=filtered.filter(s=>s.type==='payment').reduce((a,s)=>a+s.total,0);
+    dTitle.textContent=from;
+    document.getElementById('dailySale').textContent=daySales>0?fmt(daySales):'-';
+    document.getElementById('dailyReturn').textContent=dayReturn>0?fmt(dayReturn):'-';
+    document.getElementById('dailyPayment').textContent=dayPayment>0?fmt(dayPayment):'-';
+    document.getElementById('dailyBrandList').innerHTML=renderBrandList(buildBrandSummary(filtered));
+  } else {
+    dTitle.textContent=today;
+    document.getElementById('dailySale').textContent=tSale>0?fmt(tSale):'-';
+    document.getElementById('dailyReturn').textContent=tReturn>0?fmt(tReturn):'-';
+    document.getElementById('dailyPayment').textContent=tPayment>0?fmt(tPayment):'-';
+    document.getElementById('dailyBrandList').innerHTML=renderBrandList(buildBrandSummary(todaySales));
+  }
+  dCard.style.display='block';
+
   const sumEl=document.getElementById('ledgerSummary');
   if(filtered.length){
     sumEl.style.display='grid';
@@ -1685,11 +1795,22 @@ window.renderLedger = async function() {
       }).join('')+'</div>';
   } else if(tab==='byProduct'){
     const byP={};
-    salesOnly.forEach(s=>s.items.forEach(it=>{const k=it.brand||it.name;if(!byP[k])byP[k]={qty:0,total:0};byP[k].qty+=it.qty;byP[k].total+=it.qty*it.price;}));
+    salesOnly.forEach(s=>s.items.forEach(it=>{
+      const k=it.brand||it.name;
+      if(!byP[k])byP[k]={qty:0,total:0};
+      byP[k].qty+=it.qty;
+      byP[k].total+=it.qty*it.price;
+    }));
+    returnsOnly.forEach(s=>s.items.forEach(it=>{
+      const k=it.brand||it.name;
+      if(!byP[k])byP[k]={qty:0,total:0};
+      byP[k].qty-=it.qty;
+      byP[k].total-=it.qty*it.price;
+    }));
     el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      Object.entries(byP).sort((a,b)=>b[1].total-a[1].total).map(([name,v])=>`
+      Object.entries(byP).filter(([,v])=>v.qty!==0||v.total!==0).sort((a,b)=>b[1].total-a[1].total).map(([name,v])=>`
       <div class="sale-item">
-        <div class="sale-top"><span class="sale-company">${name}</span><span class="sale-amount" style="color:#1D9E75;">${fmt(v.total)}</span></div>
+        <div class="sale-top"><span class="sale-company">${name}</span><span class="sale-amount" style="color:${v.total>=0?'#1D9E75':'#e53935'};">${v.total<0?'-':''}${fmt(Math.abs(v.total))}</span></div>
         <div class="sale-bottom"><span class="sale-meta">총 ${v.qty}개 판매</span></div>
       </div>`).join('')+'</div>';
   }
@@ -2025,8 +2146,8 @@ window.generateStatement = function() {
       <div style="text-align:center;font-size:17px;font-weight:700;margin-bottom:12px;">거래명세표</div>
       <div style="margin-bottom:8px;"><strong>${client.name}</strong> 귀하</div>
       <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
-        <tr style="background:#f5f5f5;"><th style="padding:6px;border:1px solid #ddd;">품목</th><th style="padding:6px;border:1px solid #ddd;">수량</th><th style="padding:6px;border:1px solid #ddd;">단가</th><th style="padding:6px;border:1px solid #ddd;">공급가액</th><th style="padding:6px;border:1px solid #ddd;">세액</th></tr>
-        ${rows.map(r=>{const {supply,vat}=calcVat(r.total);const minus=r.isReturn?'-':'';const color=r.isReturn?'color:#c62828;':'';return`<tr><td style="padding:6px;border:1px solid #eee;${color}">${r.brand}</td><td style="padding:6px;border:1px solid #eee;text-align:center;${color}">${r.qty}</td><td style="padding:6px;border:1px solid #eee;text-align:right;">${fmt(r.price)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(supply)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(vat)}</td></tr>`;}).join('')}
+        <tr style="background:#f5f5f5;"><th style="padding:6px;border:1px solid #ddd;">품목</th><th style="padding:6px;border:1px solid #ddd;">수량</th><th style="padding:6px;border:1px solid #ddd;">단가</th><th style="padding:6px;border:1px solid #ddd;">공급가액</th><th style="padding:6px;border:1px solid #ddd;">세액</th><th style="padding:6px;border:1px solid #ddd;">합계</th></tr>
+        ${rows.map(r=>{const {supply,vat}=calcVat(r.total);const minus=r.isReturn?'-':'';const color=r.isReturn?'color:#c62828;':'';return`<tr><td style="padding:6px;border:1px solid #eee;${color}">${r.brand}</td><td style="padding:6px;border:1px solid #eee;text-align:center;${color}">${r.qty}</td><td style="padding:6px;border:1px solid #eee;text-align:right;">${fmt(r.price)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(supply)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(vat)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;font-weight:700;${color}">${minus}${fmt(r.total)}</td></tr>`;}).join('')}
       </table>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>전잔금</span><span>${fmt(Math.max(0,prevAr))}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>합계</span><span style="color:#1D9E75;font-weight:700;">${fmt(grandTotal)}</span></div>
@@ -2344,46 +2465,64 @@ window.playErrorBeep = function() {
 window.arSortMode = window.arSortMode || 'amount';
 window.setArSort = function(mode){
   window.arSortMode = mode;
-  const amtBtn = document.getElementById('arSortAmt');
+  const amtBtn  = document.getElementById('arSortAmt');
   const nameBtn = document.getElementById('arSortName');
-  if(amtBtn && nameBtn){
-    if(mode==='amount'){
-      amtBtn.style.border='2px solid #e53935';
-      nameBtn.style.border='2px solid transparent';
-    } else {
-      nameBtn.style.border='2px solid #e53935';
-      amtBtn.style.border='2px solid transparent';
-    }
-  }
+  const payBtn  = document.getElementById('arSortPay');
+  [amtBtn, nameBtn, payBtn].forEach(b=>{ if(b) b.style.border='2px solid transparent'; });
+  if(mode==='amount' && amtBtn)  amtBtn.style.border='2px solid #e53935';
+  if(mode==='name'   && nameBtn) nameBtn.style.border='2px solid #e53935';
+  if(mode==='payment'&& payBtn)  payBtn.style.border='2px solid #e53935';
   renderAR(document.querySelector('#page-ar .input-field')?.value||'');
+};
+
+window.arPaymentMap = null; // 캐시
+
+window.loadARPaymentMap = async function() {
+  if(window.arPaymentMap) return; // 이미 로드됐으면 스킵
+  try {
+    const {collection,query,where,getDocs}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap=await getDocs(query(collection(db,'sales'),where('type','==','payment')));
+    window.arPaymentMap={};
+    snap.docs.forEach(d=>{
+      const s=d.data();
+      if(!window.arPaymentMap[s.clientId]||s.date>window.arPaymentMap[s.clientId])
+        window.arPaymentMap[s.clientId]=s.date;
+    });
+  } catch(e){ window.arPaymentMap={}; console.warn('입금 조회 실패',e); }
 };
 
 window.renderAR = function(filter='') {
   const allC=window.dbClients.filter(c=>!filter||c.name.includes(filter));
-  // client.ar = 현재 잔액 (항상 최신)
-  // window.dbSales = 로드된 기간의 매출/입금 집계용
-  const list=allC.map(c=>{
-    return{...c,calcAR:c.ar||0};
-  });
+  let list=allC.map(c=>({...c,calcAR:c.ar||0}));
   if(window.arSortMode==='name'){
     list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  } else if(window.arSortMode==='payment'){
+    const pm = window.arPaymentMap || {};
+    list.sort((a,b)=>{
+      const aDate = pm[a.id] || '0000-00-00';
+      const bDate = pm[b.id] || '0000-00-00';
+      return aDate.localeCompare(bDate);
+    });
+    // 완납(0원) 제외
+    list = list.filter(c=>c.calcAR!==0);
   } else {
     list.sort((a,b)=>{
-      // 미수 먼저(높은 순) → 선입금(낮은 순) → 완납 맨 아래
       const aGrp = a.calcAR>0?0:a.calcAR<0?1:2;
       const bGrp = b.calcAR>0?0:b.calcAR<0?1:2;
       if(aGrp!==bGrp) return aGrp-bGrp;
       if(aGrp===0) return b.calcAR-a.calcAR;
-      if(aGrp===1) return a.calcAR-b.calcAR; // 선입금 많은 순
+      if(aGrp===1) return a.calcAR-b.calcAR;
       return a.name.localeCompare(b.name,'ko');
     });
   }
-  const total=list.reduce((s,c)=>s+c.calcAR,0); // 선입금 차감한 실제 순미수금
+  const total=list.reduce((s,c)=>s+c.calcAR,0);
   const arCount=list.filter(c=>c.calcAR>0).length;
   document.getElementById('arTotal').textContent=fmt(Math.max(0,total));
   document.getElementById('arCount').textContent=arCount+'개 거래처';
   const prepaidEl=document.getElementById('arPrepaid');
   if(prepaidEl) prepaidEl.textContent='';
+  const lastPayMap = window.arPaymentMap || {};
+
   document.getElementById('arList').innerHTML=list.length?list.map(c=>{
     const isZero=c.calcAR===0;
     const isMinus=c.calcAR<0;
@@ -2396,6 +2535,20 @@ window.renderAR = function(filter='') {
     const badgeBg=isMinus?'#e3f2fd':isZero?'#f5f5f5':'#fff5f5';
     const badgeColor=isMinus?'#1976D2':isZero?'#999':'#e53935';
     const badgeText=isMinus?'💙 선입금':isZero?'✅ 완납':'💸 미수';
+    const lastPayDate = lastPayMap[c.id];
+    const lastPayStr = lastPayDate ? lastPayDate.slice(2) : '-';
+    // 경과 개월 수 계산 (최대 12개월)
+    let elapsedMonths = 12; // 결제 기록 없으면 꽉 참
+    if(lastPayDate){
+      const today = new Date(getKSTDate());
+      const last = new Date(lastPayDate);
+      const diffDays = Math.floor((today - last) / (1000*60*60*24));
+      elapsedMonths = Math.min(12, Math.ceil(diffDays / 30));
+    }
+    const showBar = c.calcAR > 0;
+    const segBar = Array.from({length:12},(_,i)=>
+      `<div style="flex:1;height:3px;border-radius:2px;background:${i<elapsedMonths?'#1D9E75':'#f0f0f0'};"></div>`
+    ).join('');
     return `<div class="ar-item" onclick="showARDetail('${c.id}')" ontouchstart="startArLongPress(event,'${c.id}')" ontouchend="cancelArLongPress(event)" ontouchmove="cancelArLongPress(event)">`+
     '<div class="ar-top">'+
       '<div>'+
@@ -2407,13 +2560,11 @@ window.renderAR = function(filter='') {
         '<div style="margin-top:4px;"><span class="ar-badge" style="background:'+badgeBg+';color:'+badgeColor+';font-size:11px;font-weight:500;">'+badgeText+'</span></div>'+
       '</div>'+
     '</div>'+
-    (initial>0?
-      '<div class="ar-bar-bg"><div class="ar-bar-fill" style="width:'+progressPct+'%;background:'+(isMinus?'linear-gradient(90deg,#1976D2,#64b5f6)':isZero?'#ddd':'linear-gradient(90deg,#e53935,#ff8a80)')+'"></div></div>':'')+
     '<div class="ar-meta">'+
-      '<span>초기미수: '+fmt(initial)+'</span>'+
+      '<span style="color:#1D9E75;">마지막 결제일: <strong>'+lastPayStr+'</strong></span>'+
       '<span style="color:#1D9E75;font-weight:500;">원장 보기 →</span>'+
     '</div>'+
-    '<div style="font-size:10px;color:#ccc;text-align:right;margin-top:4px;">💳 길게 눌러 입금</div>'+
+    (showBar?'<div style="display:flex;gap:2px;margin-top:6px;">'+segBar+'</div>':'')+
     '</div>';
   }).join(''):
     '<div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-text">거래처가 없습니다</div></div>';
@@ -2434,11 +2585,13 @@ window.showARDetail = function(clientId) {
           <div class="modal-title" style="margin:0;">${c.name} 원장</div>
           <button onclick="recalcClientAR('${clientId}')" style="display:none;">🔄 잔액 재계산</button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <input type="date" id="arFrom" value="${firstDay}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;" />
-          <span style="line-height:36px;color:#888;">~</span>
-          <input type="date" id="arTo" value="${today}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;" />
-          <button onclick="renderARDetail('${clientId}')" style="padding:0 12px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">조회</button>
+        <div style="margin-bottom:12px;">
+          <div class="dp-row" style="margin-bottom:8px;">
+            <input type="date" id="arFrom" value="${firstDay}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+            <span style="color:#bbb;font-size:16px;padding-top:2px;">~</span>
+            <input type="date" id="arTo" value="${today}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+          </div>
+          <button onclick="renderARDetail('${clientId}')" style="width:100%;padding:8px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">조회</button>
         </div>
         <div id="arDetailContent"></div>
       </div>
@@ -3410,8 +3563,8 @@ window.saveEditSale = async function(id) {
     const idx = window.dbSales.findIndex(x=>x.id===id);
     if(idx>=0) window.dbSales[idx] = {...window.dbSales[idx], ...updateData};
     closeModalDirect();
-    const from = document.getElementById('ledgerFrom')?.value || getKSTMonthStart();
-    const to   = document.getElementById('ledgerTo')?.value   || getKSTDate();
+    const from = document.getElementById('ledgerFrom').value || getKSTMonthStart();
+    const to   = document.getElementById('ledgerTo').value || getKSTDate();
     window.salesRange = {from:'', to:''}; // 강제 재로드
     await fetchSalesRange(from, to);
     renderLedger();
