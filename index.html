@@ -56,6 +56,11 @@ input[type="date"].input-field{color:#222;-webkit-text-fill-color:#222;font-size
 .date-wrap{display:flex;gap:8px;padding:0 12px 10px;}
 .date-wrap input{flex:1;padding:12px 10px;border:1px solid #e0e0e0;border-radius:10px;font-size:17px;font-weight:700;color:#222;-webkit-text-fill-color:#222;background:white;outline:none;letter-spacing:normal;font-family:inherit;}
 .date-wrap input:focus{border-color:#1D9E75;}
+.date-nav{display:flex;align-items:center;gap:6px;width:100%;}
+.date-nav input{flex:1;}
+.date-nav-btn{width:38px;height:50px;border:1px solid #e0e0e0;border-radius:10px;background:#f5f5f5;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;color:#555;font-weight:700;}
+input[type="date"]{position:relative;}
+input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 .btn{width:calc(100% - 32px);margin:8px 16px;padding:15px;border-radius:10px;font-size:16px;font-weight:600;border:none;cursor:pointer;}
 .btn-primary{background:#1D9E75;color:white;}
 .btn-blue{background:#1976D2;color:white;}
@@ -339,8 +344,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
       <!-- 날짜 -->
       <div style="padding:14px 16px 0;">
         <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">날짜</div>
-        <input type="date" class="input-field" id="saleDate"
-          style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;width:100%;box-sizing:border-box;" />
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('saleDate',-1)">◀</button><input type="date" class="input-field" id="saleDate" style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;box-sizing:border-box;" /><button class="date-nav-btn" onclick="dateNav('saleDate',1)">▶</button></div>
       </div>
       <!-- 구분선 -->
       <div style="height:1px;background:#f5f5f5;margin:14px 16px 0;"></div>
@@ -440,6 +444,11 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
         <div id="sessionSummaryContent"></div>
       </div>
     </div>
+    <!-- 메모 -->
+    <div id="memoWrap" style="display:none;margin:10px 12px 0;">
+      <input class="input-field" id="saleMemo" type="text" placeholder="메모"
+        style="background:#fffef0;border:1px solid #e0d88f;font-size:14px;color:#555;" />
+    </div>
     <button id="saveSessionBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;" onclick="saveSession()">✅ 저장하기</button>
     <button id="clearSessionBtn" class="btn btn-secondary" style="display:none;margin-top:0;" onclick="clearSession()">🗑️ 초기화</button>
   </div>
@@ -523,7 +532,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" />
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('stmtDate',-1,onStmtDateChange)">◀</button><input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" /><button class="date-nav-btn" onclick="dateNav('stmtDate',1,onStmtDateChange)">▶</button></div>
     </div>
     <div class="section-label" id="stmtClientLabel">거래처 선택</div>
     <div id="stmtClientCards" style="padding:0 12px 10px;"></div>
@@ -546,7 +555,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div style="padding:12px;flex:1;overflow-y:auto;padding-bottom:24px;">
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금일자</div>
-      <input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;padding:15px 16px;font-size:17px;font-weight:700;">
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('paymentDate',-1)">◀</button><input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;padding:15px 16px;font-size:17px;font-weight:700;"><button class="date-nav-btn" onclick="dateNav('paymentDate',1)">▶</button></div>
     </div>
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">거래처 선택</div>
@@ -615,7 +624,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" />
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('pickDate',-1,onPickDateChange)">◀</button><input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" /><button class="date-nav-btn" onclick="dateNav('pickDate',1,onPickDateChange)">▶</button></div>
     </div>
     <div class="section-label" id="pickClientLabel">거래처 선택</div>
     <div id="pickClientCards" style="padding:0 12px 10px;"></div>
@@ -811,6 +820,16 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 window.dbClients=[]; window.dbProducts=[]; window.dbSales=[]; window.barcodeMap={};
+
+window.dateNav=function(id,delta,onchangeFn){
+  const el=document.getElementById(id);
+  if(!el||!el.value)return;
+  const d=new Date(el.value);
+  d.setDate(d.getDate()+delta);
+  el.value=d.toISOString().split('T')[0];
+  if(onchangeFn) onchangeFn();
+  else el.dispatchEvent(new Event('change'));
+};
 
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
 window.currentLedgerTab='byDate'; window.stmtData=null;
@@ -1560,6 +1579,7 @@ window.renderSessionSummary = function() {
   const wrap=document.getElementById('sessionSummaryWrap');
   const saveBtn=document.getElementById('saveSessionBtn');
   const clearBtn=document.getElementById('clearSessionBtn');
+  const memoWrap=document.getElementById('memoWrap');
   const content=document.getElementById('sessionSummaryContent');
   if(!wrap) return;
   const saleTotal=window.cart.reduce((s,x)=>s+x.qty*x.price,0);
@@ -1569,6 +1589,7 @@ window.renderSessionSummary = function() {
   wrap.style.display=hasData?'block':'none';
   if(saveBtn) saveBtn.style.display=hasData?'block':'none';
   if(clearBtn) clearBtn.style.display=hasData?'block':'none';
+  if(memoWrap) memoWrap.style.display=hasData?'block':'none';
   if(!hasData||!content) return;
   const arChange=saleTotal-returnTotal-payAmt;
   const arColor=arChange>0?'#f87171':arChange<0?'#86efac':'#aaa';
@@ -1591,6 +1612,7 @@ window.saveSession = async function() {
   if(!hasSale&&!hasReturn&&!payAmt){showToast('등록할 내용이 없습니다','#888');return;}
   const client=window.dbClients.find(c=>c.id===clientId);
   if(!client){showToast('거래처를 찾을 수 없습니다','#e53935');return;}
+  const memo=(document.getElementById('saleMemo')?.value||'').trim();
   showLoading(true);
   let arChange=0;
   try{
@@ -1598,31 +1620,29 @@ window.saveSession = async function() {
       const total=window.cart.reduce((s,x)=>s+x.qty*x.price,0);
       const cost=window.cart.reduce((s,x)=>s+x.qty*(x.cost||0),0);
       const {supply,vat}=calcVat(total);
-      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'sale',items:window.cart.map(x=>({...x})),total,supply,vat,cost});
+      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'sale',items:window.cart.map(x=>({...x})),total,supply,vat,cost,...(memo?{memo}:{})});
       arChange+=total;
     }
     if(hasReturn){
       const total=window.returnCart.reduce((s,x)=>s+x.qty*x.price,0);
       const cost=window.returnCart.reduce((s,x)=>s+x.qty*(x.cost||0),0);
       const {supply,vat}=calcVat(total);
-      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'return',items:window.returnCart.map(x=>({...x})),total,supply,vat,cost});
+      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'return',items:window.returnCart.map(x=>({...x})),total,supply,vat,cost,...(memo?{memo}:{})});
       arChange-=total;
     }
     if(payAmt>0){
-      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'payment',items:[],total:payAmt,supply:0,vat:0,cost:0});
+      await addDoc(collection(db,'sales'),{clientId,clientName:client.name,date,timestamp:new Date().toISOString(),type:'payment',items:[],total:payAmt,supply:0,vat:0,cost:0,...(memo?{memo}:{})});
       arChange-=payAmt;
     }
     const newAr=(client.ar||0)+arChange;
     await updateDoc(doc(db,'clients',clientId),{ar:newAr});
-    // ✅ 저장 후 전체 초기화 (거래처·날짜·카트 모두 리셋)
     window.salesRange={from:'',to:''};
     window.cart=[];window.returnCart=[];
     document.getElementById('salePaymentAmt').value='';
-    // 거래처 선택 초기화
+    if(document.getElementById('saleMemo')) document.getElementById('saleMemo').value='';
     document.getElementById('clientSearchInput').value='';
     document.getElementById('clientSelect').value='';
     document.getElementById('clientArInfo').style.display='none';
-    // 날짜 오늘로 리셋
     document.getElementById('saleDate').value=getKSTDate();
     renderCart();renderReturnCart();renderSessionSummary();
     setType('sale');
@@ -1638,6 +1658,7 @@ window.saveSession = async function() {
 window.clearSession = function() {
   window.cart=[];window.returnCart=[];
   document.getElementById('salePaymentAmt').value='';
+  if(document.getElementById('saleMemo')) document.getElementById('saleMemo').value='';
   renderCart();renderReturnCart();renderSessionSummary();
 };
 
@@ -1897,6 +1918,7 @@ window.showSaleDetail = function(id) {
           <span>합계</span><span style="color:${tColor[s.type||'sale']}">${fmt(s.total)}</span>
         </div>
         ${s.supply?`<div style="font-size:12px;color:#888;margin-bottom:12px;">공급가: ${fmt(s.supply)} / VAT: ${fmt(s.vat)}</div>`:''}
+        ${s.memo?`<div style="background:#fffef0;border:1px solid #e0d88f;border-radius:8px;padding:8px 12px;font-size:13px;color:#666;margin-bottom:10px;">📝 ${s.memo}</div>`:''}
         <button class="btn btn-blue" style="margin:0 0 8px;" onclick="openEditSaleModal('${s.id}')">✏️ 수정</button>
         <button class="btn btn-red" style="margin:0 0 8px;" onclick="deleteSale('${s.id}')">🗑️ 삭제</button>
         <button class="btn btn-secondary" style="margin:0;" onclick="closeModalDirect()">닫기</button>
@@ -2146,9 +2168,19 @@ window.generateStatement = function() {
     <div style="background:white;border-radius:12px;padding:16px;font-size:13px;margin-top:10px;">
       <div style="text-align:center;font-size:17px;font-weight:700;margin-bottom:12px;">거래명세표</div>
       <div style="margin-bottom:8px;"><strong>${client.name}</strong> 귀하</div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">
-        <tr style="background:#f5f5f5;"><th style="padding:6px;border:1px solid #ddd;">품목</th><th style="padding:6px;border:1px solid #ddd;">수량</th><th style="padding:6px;border:1px solid #ddd;">단가</th><th style="padding:6px;border:1px solid #ddd;">공급가액</th><th style="padding:6px;border:1px solid #ddd;">세액</th><th style="padding:6px;border:1px solid #ddd;">합계</th></tr>
-        ${rows.map(r=>{const {supply,vat}=calcVat(r.total);const minus=r.isReturn?'-':'';const color=r.isReturn?'color:#c62828;':'';return`<tr><td style="padding:6px;border:1px solid #eee;${color}">${r.brand}</td><td style="padding:6px;border:1px solid #eee;text-align:center;${color}">${r.qty}</td><td style="padding:6px;border:1px solid #eee;text-align:right;">${fmt(r.price)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(supply)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;${color}">${minus}${fmt(vat)}</td><td style="padding:6px;border:1px solid #eee;text-align:right;font-weight:700;${color}">${minus}${fmt(r.total)}</td></tr>`;}).join('')}
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;">
+        <tr style="background:#f5f5f5;">
+          <th style="padding:8px 6px;border:1px solid #ddd;text-align:left;">품목</th>
+          <th style="padding:8px 6px;border:1px solid #ddd;text-align:center;">수량</th>
+          <th style="padding:8px 6px;border:1px solid #ddd;text-align:right;">단가</th>
+          <th style="padding:8px 6px;border:1px solid #ddd;text-align:right;">합계</th>
+        </tr>
+        ${rows.map(r=>{const minus=r.isReturn?'-':'';const color=r.isReturn?'color:#c62828;':'';return`<tr>
+          <td style="padding:8px 6px;border:1px solid #eee;${color}">${r.brand}</td>
+          <td style="padding:8px 6px;border:1px solid #eee;text-align:center;${color}">${r.qty}</td>
+          <td style="padding:8px 6px;border:1px solid #eee;text-align:right;">${fmt(r.price)}</td>
+          <td style="padding:8px 6px;border:1px solid #eee;text-align:right;font-weight:700;${color}">${minus}${fmt(r.total)}</td>
+        </tr>`;}).join('')}
       </table>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>전잔금</span><span>${fmt(Math.max(0,prevAr))}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>합계</span><span style="color:#1D9E75;font-weight:700;">${fmt(grandTotal)}</span></div>
@@ -2380,7 +2412,7 @@ window.openQuickPaymentModal = function(clientId) {
           <div style="font-size:22px;font-weight:700;color:${arColor};">${fmt(c.ar||0)}</div>
         </div>
         <div class="field-label">입금일자</div>
-        <input type="date" class="field-input" id="qpDate" value="${today}">
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">◀</button><input type="date" class="field-input" id="qpDate" value="${today}"><button class="date-nav-btn" onclick="dateNav('qpDate',1)">▶</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="qpAmt" placeholder="입금액 입력"
           oninput="updateQPPreview('${clientId}')">
@@ -3315,7 +3347,7 @@ window.openPaymentEditModal = async function(saleId) {
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div style="font-size:16px;font-weight:700;margin-bottom:14px;margin-top:4px;">${p.clientName}</div>
         <div class="field-label">날짜</div>
-        <input type="date" class="field-input" id="peDate" value="${p.date}">
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">◀</button><input type="date" class="field-input" id="peDate" value="${p.date}"><button class="date-nav-btn" onclick="dateNav('peDate',1)">▶</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
         <div class="field-label">메모</div>
@@ -3445,28 +3477,46 @@ window.openEditSaleModal = function(id) {
   const color = tColor[s.type||'sale'];
 
   const itemsHtml = s.type !== 'payment' ? `
-    <div style="font-size:13px;color:#666;font-weight:500;margin:14px 0 6px;">상품별 수량 / 단가</div>
+    <div style="font-size:13px;color:#666;font-weight:500;margin:14px 0 8px;">브랜드별 단가 수정</div>
+    <div style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:14px;">
+      ${(()=>{
+        const brands={};
+        window._editSaleItems.forEach(it=>{
+          const k=it.brand||'기타';
+          if(!brands[k]) brands[k]={qty:0,price:it.price};
+          brands[k].qty+=it.qty;
+        });
+        return Object.entries(brands).map(([brand,v],bi)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;${bi>0?'border-top:1px solid #f5f5f5;':''}">
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:700;color:#222;">${brand}</div>
+              <div style="font-size:12px;color:#aaa;margin-top:2px;">총 ${v.qty}개</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <span style="font-size:12px;color:#aaa;">단가</span>
+              <input type="number" id="es_brand_price_${bi}" data-brand="${brand}" value="${v.price}"
+                oninput="esBrandPriceInput('${brand}',this.value)"
+                style="width:80px;padding:7px 8px;border:1px solid #1D9E75;border-radius:8px;font-size:14px;font-weight:700;text-align:right;outline:none;color:#1D9E75;">
+            </div>
+          </div>`).join('');
+      })()}
+    </div>
+    <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:8px;">개별 바코드 수량 / 삭제</div>
     <div style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:10px;">
       ${window._editSaleItems.map((it,i)=>`
-        <div style="padding:11px 12px;${i<window._editSaleItems.length-1?'border-bottom:1px solid #f5f5f5;':''}">
-          <div style="font-size:13px;font-weight:600;color:#222;margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-            ${it.uid?'['+it.uid+'] ':''}${it.brand||''} ${it.modelNo||''} ${it.color||''}
-          </div>
+        <div id="es_row_${i}" style="padding:10px 12px;${i<window._editSaleItems.length-1?'border-bottom:1px solid #f5f5f5;':''}">
           <div style="display:flex;align-items:center;gap:8px;">
-            <div style="display:flex;align-items:center;gap:6px;flex:1;">
-              <button onclick="esQtyChange(${i},-1)" style="width:30px;height:30px;border-radius:50%;border:1px solid #ddd;background:#f5f5f5;font-size:18px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
-              <span id="es_qty_${i}" style="min-width:28px;text-align:center;font-size:16px;font-weight:700;">${it.qty}</span>
-              <button onclick="esQtyChange(${i},1)" style="width:30px;height:30px;border-radius:50%;border:1px solid #ddd;background:#f5f5f5;font-size:18px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+            <div style="flex:1;font-size:12px;font-weight:600;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              ${it.uid?'['+it.uid+'] ':''}${it.brand||''} ${it.modelNo||''} ${it.color||''}
             </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-              <span style="font-size:12px;color:#aaa;">단가</span>
-              <input type="number" id="es_price_${i}" value="${it.price}" oninput="esUpdateTotal()"
-                style="width:76px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:13px;text-align:right;outline:none;">
+            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+              <button onclick="esQtyChange(${i},-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#f5f5f5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+              <span id="es_qty_${i}" style="min-width:22px;text-align:center;font-size:14px;font-weight:700;">${it.qty}</span>
+              <button onclick="esQtyChange(${i},1)" style="width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#f5f5f5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
             </div>
-            <span id="es_rowamt_${i}" style="font-size:13px;font-weight:700;color:${color};min-width:54px;text-align:right;">${fmt(it.qty*it.price)}</span>
+            <button onclick="esDeleteItem(${i})" style="width:26px;height:26px;border-radius:50%;border:none;background:#ffe0e0;color:#e53935;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;">×</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`).join('')}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:700;padding:8px 2px;margin-bottom:10px;border-top:1px solid #f0f0f0;">
       <span>합계</span><span id="es_total" style="color:${color};">${fmt(s.total)}</span>
@@ -3485,13 +3535,33 @@ window.openEditSaleModal = function(id) {
           <span style="font-size:15px;font-weight:700;color:#222;">${s.clientName}</span>
         </div>
         <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:6px;">날짜</div>
-        <input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;">
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">◀</button><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"><button class="date-nav-btn" onclick="dateNav('es_date',1)">▶</button></div>
         ${itemsHtml}
         <button class="btn btn-primary" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
         <button class="btn btn-secondary" style="margin:4px 16px 0;" onclick="showSaleDetail('${id}')">취소</button>
       </div>
     </div>`;
   history.pushState({page:'modal'},'');
+};
+
+window.esDeleteItem = function(i) {
+  window._editSaleItems.splice(i, 1);
+  const row = document.getElementById(`es_row_${i}`);
+  if(row) row.remove();
+  const total = window._editSaleItems.reduce((s,it)=>s+it.qty*it.price,0);
+  const el = document.getElementById('es_total');
+  if(el) el.textContent = fmt(total);
+};
+
+window.esBrandPriceInput = function(brand, val) {
+  const price = parseInt(val)||0;
+  window._editSaleItems.forEach(it=>{
+    if((it.brand||'기타')===brand) it.price=price;
+  });
+  // 합계 재계산
+  const total = window._editSaleItems.reduce((sum,it)=>sum+it.qty*it.price,0);
+  const el = document.getElementById('es_total');
+  if(el) el.textContent = fmt(total);
 };
 
 window.esQtyChange = function(i, d) {
@@ -3530,10 +3600,9 @@ window.saveEditSale = async function(id) {
       const memo = (document.getElementById('es_memo').value||'').trim();
       updateData = {...updateData, total:amt, memo};
     } else {
-      const updatedItems = window._editSaleItems.map((it,i)=>{
-        const price = parseInt((document.getElementById(`es_price_${i}`)||{}).value)||it.price||0;
-        return {...it, price, qty:it.qty};
-      }).filter(it=>it.qty>0);
+      const updatedItems = window._editSaleItems.map(it=>({
+        ...it, price:it.price||0, qty:it.qty
+      })).filter(it=>it.qty>0);
       if(!updatedItems.length){alert('수량이 있는 상품이 없습니다.\n전체 삭제는 삭제 버튼을 이용해주세요.'); showLoading(false); return;}
       const total = updatedItems.reduce((s,x)=>s+x.qty*x.price, 0);
       const supply = Math.round(total/1.1);
