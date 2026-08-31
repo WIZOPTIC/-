@@ -1023,29 +1023,6 @@ window.showPage = function(name) {
 };
 history.replaceState({page:'home'},'');
 history.pushState({page:'home'},'');
-window.showExitConfirm = function() {
-  const m=document.getElementById('modalArea');
-  if(!m) return;
-  const overlay=document.createElement('div');
-  overlay.id='exitOverlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
-  const box=document.createElement('div');
-  box.style.cssText='background:white;border-radius:20px;padding:32px 24px;width:76%;max-width:300px;text-align:center;';
-  box.innerHTML='<div style="font-size:48px;margin-bottom:14px;">👋</div><div style="font-size:18px;font-weight:700;margin-bottom:8px;">앱을 종료할까요?</div><div style="font-size:14px;color:#888;margin-bottom:24px;">판매관리를 닫습니다</div>';
-  const btns=document.createElement('div');
-  btns.style.cssText='display:flex;gap:10px;';
-  const cancel=document.createElement('button');
-  cancel.textContent='취소';
-  cancel.style.cssText='flex:1;padding:13px;border:1.5px solid #ddd;border-radius:12px;background:white;font-size:15px;cursor:pointer;';
-  cancel.onclick=function(){const o=document.getElementById('exitOverlay');if(o)o.remove();};
-  const quit=document.createElement('button');
-  quit.textContent='종료';
-  quit.style.cssText='flex:1;padding:13px;border:none;border-radius:12px;background:#e53935;color:white;font-size:15px;font-weight:700;cursor:pointer;';
-  quit.onclick=function(){window.close();history.back();};
-  btns.appendChild(cancel);btns.appendChild(quit);
-  box.appendChild(btns);overlay.appendChild(box);
-  document.body.appendChild(overlay);
-};
 window.addEventListener('popstate',function(e){
   const m=document.getElementById('modalArea');
   // 모달 열려있으면 닫기
@@ -1061,11 +1038,7 @@ window.addEventListener('popstate',function(e){
     showHome();
     return;
   }
-  // 홈에서 뒤로가기 → 종료 팝업
-  const existOverlay=document.getElementById('exitOverlay');
-  if(existOverlay){existOverlay.remove();history.pushState({page:'home'},'');return;}
-  showExitConfirm();
-  history.pushState({page:'home'},'');
+  // 홈에서 뒤로가기 → 그냥 브라우저 동작
 });
 
 // 거래처 드롭다운
@@ -2619,11 +2592,10 @@ window.showARDetail = function(clientId) {
   document.getElementById('modalArea').innerHTML=`
     <div class="modal-overlay" onclick="closeModal(event)">
       <div class="modal" style="max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-        <div style="padding:16px 16px 0;flex-shrink:0;">
-          <button class="modal-close" onclick="closeModalDirect()" style="position:absolute;top:12px;right:12px;">×</button>
+        <div style="padding:14px 16px 0;flex-shrink:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
             <div class="modal-title" style="margin:0;">${c.name} 원장</div>
-            <button onclick="recalcClientAR('${clientId}')" style="display:none;">🔄 잔액 재계산</button>
+            <button onclick="closeModalDirect()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f0f0f0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555;flex-shrink:0;">×</button>
           </div>
           <div style="margin-bottom:12px;">
             <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;flex-wrap:nowrap;">
