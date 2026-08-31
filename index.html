@@ -57,8 +57,9 @@ input[type="date"].input-field{color:#222;-webkit-text-fill-color:#222;font-size
 .date-wrap input{flex:1;padding:12px 10px;border:1px solid #e0e0e0;border-radius:10px;font-size:17px;font-weight:700;color:#222;-webkit-text-fill-color:#222;background:white;outline:none;letter-spacing:normal;font-family:inherit;text-align:center;text-align-last:center;}
 .date-wrap input:focus{border-color:#1D9E75;}
 .date-nav{display:flex;align-items:center;gap:6px;width:100%;}
-.date-nav-inner{flex:1;height:50px;overflow:hidden;border:1px solid #e0e0e0;border-radius:10px;background:white;position:relative;}
-.date-nav-inner input[type="date"]{width:calc(100% + 36px);height:100%;border:none;outline:none;background:transparent;font-size:17px;font-weight:700;color:#222;-webkit-text-fill-color:#222;text-align:center;text-align-last:center;padding:0 36px 0 0;margin:0;font-family:inherit;box-sizing:border-box;}
+.date-nav-inner{flex:1;height:50px;border:1px solid #e0e0e0;border-radius:10px;background:white;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;}
+.date-nav-inner .date-display{font-size:17px;font-weight:700;color:#222;text-align:center;pointer-events:none;user-select:none;}
+.date-nav-inner input[type="date"]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;font-size:0;}
 .date-nav-btn{width:44px;height:50px;border:1px solid #e0e0e0;border-radius:10px;background:#f5f5f5;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;color:#555;font-weight:700;box-sizing:border-box;}
 input[type="date"]{position:relative;}
 input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
@@ -347,7 +348,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
       <!-- 날짜 -->
       <div style="padding:14px 16px 0;">
         <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('saleDate',-1)">−</button><div class="date-nav-inner"><input type="date" class="input-field" id="saleDate" style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;box-sizing:border-box;" /></div><button class="date-nav-btn" onclick="dateNav('saleDate',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('saleDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('saleDate').click()"><span class="date-display" id="saleDate_display"></span><input type="date" class="input-field" id="saleDate" style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;box-sizing:border-box;" /></div><button class="date-nav-btn" onclick="dateNav('saleDate',1)">+</button></div>
       </div>
       <!-- 구분선 -->
       <div style="height:1px;background:#f5f5f5;margin:14px 16px 0;"></div>
@@ -537,7 +538,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('stmtDate',-1,onStmtDateChange)">−</button><div class="date-nav-inner"><input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" /></div><button class="date-nav-btn" onclick="dateNav('stmtDate',1,onStmtDateChange)">+</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('stmtDate',-1,onStmtDateChange)">−</button><div class="date-nav-inner" onclick="document.getElementById('stmtDate').click()"><span class="date-display" id="stmtDate_display"></span><input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" /></div><button class="date-nav-btn" onclick="dateNav('stmtDate',1,onStmtDateChange)">+</button></div>
     </div>
     <div class="section-label" id="stmtClientLabel">거래처 선택</div>
     <div id="stmtClientCards" style="padding:0 12px 10px;"></div>
@@ -560,7 +561,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div style="padding:12px;flex:1;overflow-y:auto;padding-bottom:24px;">
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금일자</div>
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('paymentDate',-1)">−</button><div class="date-nav-inner"><input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('paymentDate',1)">+</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('paymentDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('paymentDate').click()"><span class="date-display" id="paymentDate_display"></span><input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('paymentDate',1)">+</button></div>
     </div>
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">거래처 선택</div>
@@ -629,7 +630,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('pickDate',-1,onPickDateChange)">−</button><div class="date-nav-inner"><input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" /></div><button class="date-nav-btn" onclick="dateNav('pickDate',1,onPickDateChange)">+</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('pickDate',-1,onPickDateChange)">−</button><div class="date-nav-inner" onclick="document.getElementById('pickDate').click()"><span class="date-display" id="pickDate_display"></span><input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" /></div><button class="date-nav-btn" onclick="dateNav('pickDate',1,onPickDateChange)">+</button></div>
     </div>
     <div class="section-label" id="pickClientLabel">거래처 선택</div>
     <div id="pickClientCards" style="padding:0 12px 10px;"></div>
@@ -834,8 +835,28 @@ window.dateNav=function(id,delta,onchangeFn){
   const d=new Date(el.value);
   d.setDate(d.getDate()+delta);
   el.value=d.toISOString().split('T')[0];
+  updateDateDisplay(id);
   if(onchangeFn) onchangeFn();
   else el.dispatchEvent(new Event('change'));
+};
+
+window.updateDateDisplay=function(id){
+  const el=document.getElementById(id);
+  const disp=document.getElementById(id+'_display');
+  if(!el||!disp)return;
+  const v=el.value;
+  if(!v){disp.textContent='';return;}
+  const [y,m,d]=v.split('-');
+  disp.textContent=y+'. '+m+'. '+d+'.';
+};
+
+window.initAllDateDisplays=function(){
+  ['saleDate','stmtDate','paymentDate','pickDate','ledgerFrom','ledgerTo','statsFrom','statsTo'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    updateDateDisplay(id);
+    el.addEventListener('change',()=>{updateDateDisplay(id);});
+  });
 };
 
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
@@ -844,16 +865,24 @@ window.currentLedgerTab='byDate'; window.stmtData=null;
 // 오늘 날짜
 const today = getKSTDate();
 document.getElementById('saleDate').value = today;
+updateDateDisplay('saleDate');
 document.getElementById('stmtDate').value = today;
+updateDateDisplay('stmtDate');
 const _kstNow = new Date(new Date().getTime() + 9*60*60*1000);
 document.getElementById('homeDate').textContent = _kstNow.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
 
 // 날짜 범위 기본값
 const firstDay = getKSTMonthStart();
 document.getElementById('ledgerFrom').value = firstDay;
+updateDateDisplay('ledgerFrom');
 document.getElementById('ledgerTo').value = today;
+updateDateDisplay('ledgerTo');
 document.getElementById('statsFrom').value = firstDay;
+updateDateDisplay('statsFrom');
 document.getElementById('statsTo').value = today;
+updateDateDisplay('statsTo');
+// 날짜 표시 초기화
+
 
 // 설정 로드
 async function loadSettings() {
@@ -969,9 +998,9 @@ window.showHome = function() {
   if(typeof clearSession==='function') clearSession();
   const m=document.getElementById('modalArea');
   if(m&&m.innerHTML.trim()) m.innerHTML='';
-  // 항상 홈 상태 2개 유지 → popstate 안정적으로 감지
   history.replaceState({page:'home'},'');
   history.pushState({page:'home'},'');
+  
 };
 window.showPage = function(name) {
   document.getElementById('home').style.display='none';
@@ -980,7 +1009,7 @@ window.showPage = function(name) {
   document.getElementById('page-'+name).style.flexDirection='column';
   const td = getKSTDate(); // ✅ 한국시간 오늘
   if(name==='sale'){
-    document.getElementById('saleDate').value=td;
+    document.getElementById('saleDate').value=td;updateDateDisplay('saleDate');
     document.getElementById('clientSearchInput').value='';
     document.getElementById('clientSelect').value='';
     document.getElementById('clientArInfo').style.display='none';
@@ -988,20 +1017,20 @@ window.showPage = function(name) {
     setTimeout(()=>{const b=document.getElementById('barcodeInput');if(b)b.focus();},200);
   }
   if(name==='ledger'){
-    document.getElementById('ledgerFrom').value=getKSTMonthStart();
-    document.getElementById('ledgerTo').value=td;
+    document.getElementById('ledgerFrom').value=getKSTMonthStart();updateDateDisplay('ledgerFrom');
+    document.getElementById('ledgerTo').value=td;updateDateDisplay('ledgerTo');
     renderLedger();
   }
   if(name==='stats'){
-    document.getElementById('statsFrom').value=getKSTMonthStart();
-    document.getElementById('statsTo').value=td;
+    document.getElementById('statsFrom').value=getKSTMonthStart();updateDateDisplay('statsFrom');
+    document.getElementById('statsTo').value=td;updateDateDisplay('statsTo');
     renderStats();
   }
   if(name==='clients') renderClients();
   if(name==='products') renderProducts();
   if(name==='ar'){ window.arPaymentMap=null; window.loadARPaymentMap().then(()=>renderAR()); }
   if(name==='payment'){
-    document.getElementById('paymentDate').value=td;
+    document.getElementById('paymentDate').value=td;updateDateDisplay('paymentDate');
     document.getElementById('paymentClientInput').value='';
     document.getElementById('paymentClientId').value='';
     document.getElementById('paymentArInfo').style.display='none';
@@ -1015,14 +1044,14 @@ window.showPage = function(name) {
     renderPaymentHistory();
   }
   if(name==='statement'){
-    document.getElementById('stmtDate').value=td;
+    document.getElementById('stmtDate').value=td;updateDateDisplay('stmtDate');
     document.getElementById('stmtClient').value='';
     document.getElementById('stmtPreview').innerHTML='';
     document.getElementById('stmtActions').style.display='none';
     fetchSalesRange(td,td).then(()=>renderClientCardList('stmtDate','stmtClientCards','stmtClient','stmtClientLabel'));
   }
   if(name==='picking'){
-    document.getElementById('pickDate').value=td;
+    document.getElementById('pickDate').value=td;updateDateDisplay('pickDate');
     document.getElementById('pickClient').value='';
     fetchSalesRange(td,td).then(()=>renderClientCardList('pickDate','pickClientCards','pickClient','pickClientLabel'));
   }
@@ -1623,7 +1652,7 @@ window.saveSession = async function() {
     document.getElementById('clientSearchInput').value='';
     document.getElementById('clientSelect').value='';
     document.getElementById('clientArInfo').style.display='none';
-    document.getElementById('saleDate').value=getKSTDate();
+    document.getElementById('saleDate').value=getKSTDate();updateDateDisplay('saleDate');
     renderCart();renderReturnCart();renderSessionSummary();
     setType('sale');
     const newMisu=newAr<0?('-'+fmt(Math.abs(newAr))):fmt(newAr);
@@ -2392,7 +2421,7 @@ window.openQuickPaymentModal = function(clientId) {
           <div style="font-size:22px;font-weight:700;color:${arColor};">${fmt(c.ar||0)}</div>
         </div>
         <div class="field-label">입금일자</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">−</button><div class="date-nav-inner"><input type="date" class="field-input" id="qpDate" value="${today}"></div><button class="date-nav-btn" onclick="dateNav('qpDate',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('qpDate').click()"><span class="date-display" id="qpDate_display"></span><input type="date" class="field-input" id="qpDate" value="${today}"></div><button class="date-nav-btn" onclick="dateNav('qpDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="qpAmt" autocomplete="off"
           value="${Math.max(0, c.ar||0)}"
@@ -3334,7 +3363,7 @@ window.openPaymentEditModal = async function(saleId) {
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div style="font-size:16px;font-weight:700;margin-bottom:14px;margin-top:4px;">${p.clientName}</div>
         <div class="field-label">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">−</button><div class="date-nav-inner"><input type="date" class="field-input" id="peDate" value="${p.date}"></div><button class="date-nav-btn" onclick="dateNav('peDate',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('peDate').click()"><span class="date-display" id="peDate_display"></span><input type="date" class="field-input" id="peDate" value="${p.date}"></div><button class="date-nav-btn" onclick="dateNav('peDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
         <div class="field-label">메모</div>
@@ -3525,7 +3554,7 @@ window.openEditSaleModal = function(id) {
           <span style="font-size:15px;font-weight:700;color:#222;">${s.clientName}</span>
         </div>
         <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:6px;">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><div class="date-nav-inner"><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('es_date').click()"><span class="date-display" id="es_date_display"></span><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
         ${itemsHtml}
         <button class="btn btn-primary" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
         <button class="btn btn-secondary" style="margin:4px 16px 0;" onclick="showSaleDetail('${id}')">취소</button>
