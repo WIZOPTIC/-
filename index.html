@@ -432,7 +432,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <div id="paymentSection" style="display:none;">
       <div style="margin:10px 12px;background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
         <div class="field-label">입금액 (원)</div>
-        <input class="input-field" id="salePaymentAmt" type="number" placeholder="입금액 입력"
+        <input class="input-field" id="salePaymentAmt" type="number" autocomplete="off" placeholder="입금액 입력"
           style="margin-bottom:0;" oninput="renderSessionSummary()" />
       </div>
     </div>
@@ -446,7 +446,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     </div>
     <!-- 메모 -->
     <div id="memoWrap" style="display:none;margin:10px 12px 0;">
-      <input class="input-field" id="saleMemo" type="text" placeholder="메모"
+      <input class="input-field" id="saleMemo" type="text" autocomplete="off" placeholder="메모"
         style="background:#fffef0;border:1px solid #e0d88f;font-size:14px;color:#555;" />
     </div>
     <button id="saveSessionBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;" onclick="saveSession()">✅ 저장하기</button>
@@ -579,7 +579,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <!-- 입금액 -->
     <div id="paymentInputArea" style="display:none;background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금액</div>
-      <input type="text" inputmode="numeric" id="paymentAmt" class="field-input" placeholder="입금액 입력" style="margin-bottom:8px;">
+      <input type="text" inputmode="numeric" id="paymentAmt" class="field-input" autocomplete="off" placeholder="입금액 입력" style="margin-bottom:8px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">메모 (선택)</div>
       <input type="text" id="paymentMemo" class="field-input" placeholder="메모" style="margin-bottom:0;">
       <!-- 입금 후 잔액 미리보기 -->
@@ -1454,7 +1454,7 @@ window.renderCart = function() {
       </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
-        <input type="number" inputmode="numeric" class="qty-num" value="${item.qty}" min="1"
+        <input type="number" inputmode="numeric" class="qty-num" autocomplete="off" value="${item.qty}" min="1"
           style="width:44px;text-align:center;border:1px solid #ddd;border-radius:8px;font-size:16px;font-weight:700;padding:4px 2px;-moz-appearance:textfield;-webkit-appearance:none;appearance:none;"
           onchange="setQty(${i},this.value)"
           onclick="this.select()">
@@ -1558,7 +1558,7 @@ window.renderReturnCart = function() {
       </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeReturnQty(${i},-1)">−</button>
-        <input type="number" inputmode="numeric" class="qty-num" value="${item.qty}" min="1"
+        <input type="number" inputmode="numeric" class="qty-num" autocomplete="off" value="${item.qty}" min="1"
           style="width:44px;text-align:center;border:1px solid #ddd;border-radius:8px;font-size:16px;font-weight:700;padding:4px 2px;-moz-appearance:textfield;-webkit-appearance:none;appearance:none;"
           onchange="setReturnQty(${i},this.value)"
           onclick="this.select()">
@@ -2414,8 +2414,10 @@ window.openQuickPaymentModal = function(clientId) {
         <div class="field-label">입금일자</div>
         <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">◀</button><input type="date" class="field-input" id="qpDate" value="${today}"><button class="date-nav-btn" onclick="dateNav('qpDate',1)">▶</button></div>
         <div class="field-label">입금액</div>
-        <input type="text" inputmode="numeric" class="field-input" id="qpAmt" placeholder="입금액 입력"
-          oninput="updateQPPreview('${clientId}')">
+        <input type="text" inputmode="numeric" class="field-input" id="qpAmt" autocomplete="off"
+          value="${Math.max(0, c.ar||0)}"
+          oninput="updateQPPreview('${clientId}')"
+          onclick="this.select()">
         <div id="qpPreview" style="display:none;background:#f5f5f5;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:4px;">
             <span>현재 미수금</span><span>${fmt(c.ar||0)}</span>
@@ -2429,12 +2431,16 @@ window.openQuickPaymentModal = function(clientId) {
           </div>
         </div>
         <div class="field-label">메모 (선택)</div>
-        <input type="text" class="field-input" id="qpMemo" placeholder="메모">
+        <input type="text" class="field-input" id="qpMemo" placeholder="메모" autocomplete="off">
         <button class="btn btn-primary" style="margin:8px 0 0;" onclick="saveQuickPayment('${clientId}')">&#x1F4B3; 입금 등록</button>
       </div>
     </div>`;
   history.pushState({page:'modal'},'');
-  setTimeout(()=>{ const el=document.getElementById('qpAmt'); if(el) el.focus(); }, 200);
+  setTimeout(()=>{
+    const el=document.getElementById('qpAmt');
+    if(el){ el.focus(); el.select(); }
+    updateQPPreview('${clientId}');
+  }, 200);
 };
 
 window.updateQPPreview = function(clientId) {
@@ -2612,21 +2618,23 @@ window.showARDetail = function(clientId) {
   const firstDay=new Date().getFullYear()+'-01-01'; // ✅ 당해년도 1월 1일
   document.getElementById('modalArea').innerHTML=`
     <div class="modal-overlay" onclick="closeModal(event)">
-      <div class="modal" style="max-height:90vh;">
-        <button class="modal-close" onclick="closeModalDirect()">×</button>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div class="modal-title" style="margin:0;">${c.name} 원장</div>
-          <button onclick="recalcClientAR('${clientId}')" style="display:none;">🔄 잔액 재계산</button>
-        </div>
-        <div style="margin-bottom:12px;">
-          <div class="dp-row" style="margin-bottom:8px;">
-            <input type="date" id="arFrom" value="${firstDay}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
-            <span style="color:#bbb;font-size:16px;padding-top:2px;">~</span>
-            <input type="date" id="arTo" value="${today}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+      <div class="modal" style="max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+        <div style="padding:16px 16px 0;flex-shrink:0;">
+          <button class="modal-close" onclick="closeModalDirect()" style="position:absolute;top:12px;right:12px;">×</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="modal-title" style="margin:0;">${c.name} 원장</div>
+            <button onclick="recalcClientAR('${clientId}')" style="display:none;">🔄 잔액 재계산</button>
           </div>
-          <button onclick="renderARDetail('${clientId}')" style="width:100%;padding:8px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">조회</button>
+          <div style="margin-bottom:12px;">
+            <div class="dp-row" style="margin-bottom:8px;">
+              <input type="date" id="arFrom" value="${firstDay}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+              <span style="color:#bbb;font-size:16px;padding-top:2px;">~</span>
+              <input type="date" id="arTo" value="${today}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+            </div>
+            <button onclick="renderARDetail('${clientId}')" style="width:100%;padding:8px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">조회</button>
+          </div>
         </div>
-        <div id="arDetailContent"></div>
+        <div id="arDetailContent" style="overflow-y:auto;flex:1;padding:0 16px 16px;"></div>
       </div>
     </div>`;
   renderARDetail(clientId);
@@ -3412,8 +3420,11 @@ window.updatePaymentArInfo = function(clientId) {
   arInfo.style.display = 'block';
   inputArea.style.display = 'block';
   saveBtn.style.display = 'block';
-  document.getElementById('paymentAmt').value = '';
-  document.getElementById('paymentPreview').style.display = 'none';
+  // 잔금을 기본 입금액으로 자동 입력
+  const amtEl = document.getElementById('paymentAmt');
+  amtEl.value = Math.max(0, client.ar||0);
+  amtEl.select();
+  updatePaymentPreview();
 };
 
 window.updatePaymentPreview = function() {
