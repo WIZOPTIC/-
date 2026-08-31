@@ -461,11 +461,13 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <span class="page-title">매출내역</span>
   </div>
   <div class="page-body" style="padding-bottom:80px;">
-    <div class="date-wrap" style="padding-top:10px;padding-left:12px;padding-right:12px;padding-bottom:10px;">
-      <input type="date" id="ledgerFrom" />
-      <span style="line-height:44px;color:#888;">~</span>
-      <input type="date" id="ledgerTo" />
-      <button style="padding:0 12px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;" onclick="renderLedger()">조회</button>
+    <div style="padding:10px 12px 8px;">
+      <div class="date-wrap" style="padding:0 0 8px;">
+        <input type="date" id="ledgerFrom" />
+        <span style="line-height:44px;color:#888;">~</span>
+        <input type="date" id="ledgerTo" />
+      </div>
+      <button style="width:100%;padding:11px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;" onclick="renderLedger()">조회</button>
     </div>
     <div class="filter-row" id="ledgerTabs">
       <div class="chip active" onclick="switchLedgerTab(this,'byDate')">일자별</div>
@@ -684,11 +686,13 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <span class="page-title">판매통계</span>
   </div>
   <div class="page-body">
-    <div class="date-wrap" style="padding-top:10px;">
-      <input type="date" id="statsFrom" />
-      <span style="line-height:44px;color:#888;">~</span>
-      <input type="date" id="statsTo" />
-      <button style="padding:0 12px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;" onclick="renderStats()">조회</button>
+    <div style="padding:10px 12px 8px;">
+      <div class="date-wrap" style="padding:0 0 8px;">
+        <input type="date" id="statsFrom" />
+        <span style="line-height:44px;color:#888;">~</span>
+        <input type="date" id="statsTo" />
+      </div>
+      <button style="width:100%;padding:11px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;" onclick="renderStats()">조회</button>
     </div>
     <div class="stat-grid" id="statsGrid"></div>
     <div style="background:white;margin:0 12px 10px;border-radius:12px;padding:14px 0 4px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
