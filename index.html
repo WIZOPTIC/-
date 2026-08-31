@@ -57,7 +57,7 @@ input[type="date"].input-field{color:#222;-webkit-text-fill-color:#222;font-size
 .date-wrap input{flex:1;padding:12px 10px;border:1px solid #e0e0e0;border-radius:10px;font-size:17px;font-weight:700;color:#222;-webkit-text-fill-color:#222;background:white;outline:none;letter-spacing:normal;font-family:inherit;}
 .date-wrap input:focus{border-color:#1D9E75;}
 .date-nav{display:flex;align-items:center;gap:6px;width:100%;}
-.date-nav input{flex:1;}
+.date-nav input{flex:1;text-align:center;}
 .date-nav-btn{width:38px;height:50px;border:1px solid #e0e0e0;border-radius:10px;background:#f5f5f5;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;color:#555;font-weight:700;}
 input[type="date"]{position:relative;}
 input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
@@ -344,7 +344,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
       <!-- 날짜 -->
       <div style="padding:14px 16px 0;">
         <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('saleDate',-1)">◀</button><input type="date" class="input-field" id="saleDate" style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;box-sizing:border-box;" /><button class="date-nav-btn" onclick="dateNav('saleDate',1)">▶</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('saleDate',-1)">−</button><input type="date" class="input-field" id="saleDate" style="margin:0;padding:13px 14px;font-size:17px;font-weight:700;border-radius:10px;border:1.5px solid #e8e8e8;box-sizing:border-box;" /><button class="date-nav-btn" onclick="dateNav('saleDate',1)">+</button></div>
       </div>
       <!-- 구분선 -->
       <div style="height:1px;background:#f5f5f5;margin:14px 16px 0;"></div>
@@ -532,7 +532,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('stmtDate',-1,onStmtDateChange)">◀</button><input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" /><button class="date-nav-btn" onclick="dateNav('stmtDate',1,onStmtDateChange)">▶</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('stmtDate',-1,onStmtDateChange)">−</button><input type="date" class="input-field" id="stmtDate" onchange="onStmtDateChange()" /><button class="date-nav-btn" onclick="dateNav('stmtDate',1,onStmtDateChange)">+</button></div>
     </div>
     <div class="section-label" id="stmtClientLabel">거래처 선택</div>
     <div id="stmtClientCards" style="padding:0 12px 10px;"></div>
@@ -555,7 +555,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div style="padding:12px;flex:1;overflow-y:auto;padding-bottom:24px;">
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">입금일자</div>
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('paymentDate',-1)">◀</button><input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;padding:15px 16px;font-size:17px;font-weight:700;"><button class="date-nav-btn" onclick="dateNav('paymentDate',1)">▶</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('paymentDate',-1)">−</button><input type="date" id="paymentDate" class="field-input" style="margin-bottom:0;padding:15px 16px;font-size:17px;font-weight:700;"><button class="date-nav-btn" onclick="dateNav('paymentDate',1)">+</button></div>
     </div>
     <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:12px;">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">거래처 선택</div>
@@ -596,7 +596,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
         </div>
       </div>
     </div>
-    <button id="paymentSaveBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;margin:0 12px;width:calc(100% - 24px);" onclick="savePayment()">💳 입금 등록</button>
+    <button id="paymentSaveBtn" class="btn btn-primary" style="display:none;font-size:17px;padding:17px;margin:0 12px;width:calc(100% - 24px);text-align:center;" onclick="savePayment()">입금 등록</button>
 
     <!-- 월별 입금내역 -->
     <div style="margin-top:16px;">
@@ -624,7 +624,7 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
   <div class="page-body no-print">
     <div class="section-label">날짜 선택</div>
     <div style="padding:0 12px 10px;">
-      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('pickDate',-1,onPickDateChange)">◀</button><input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" /><button class="date-nav-btn" onclick="dateNav('pickDate',1,onPickDateChange)">▶</button></div>
+      <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('pickDate',-1,onPickDateChange)">−</button><input type="date" class="input-field" id="pickDate" onchange="onPickDateChange()" /><button class="date-nav-btn" onclick="dateNav('pickDate',1,onPickDateChange)">+</button></div>
     </div>
     <div class="section-label" id="pickClientLabel">거래처 선택</div>
     <div id="pickClientCards" style="padding:0 12px 10px;"></div>
@@ -2412,7 +2412,7 @@ window.openQuickPaymentModal = function(clientId) {
           <div style="font-size:22px;font-weight:700;color:${arColor};">${fmt(c.ar||0)}</div>
         </div>
         <div class="field-label">입금일자</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">◀</button><input type="date" class="field-input" id="qpDate" value="${today}"><button class="date-nav-btn" onclick="dateNav('qpDate',1)">▶</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">−</button><input type="date" class="field-input" id="qpDate" value="${today}"><button class="date-nav-btn" onclick="dateNav('qpDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="qpAmt" autocomplete="off"
           value="${Math.max(0, c.ar||0)}"
@@ -2432,7 +2432,7 @@ window.openQuickPaymentModal = function(clientId) {
         </div>
         <div class="field-label">메모 (선택)</div>
         <input type="text" class="field-input" id="qpMemo" placeholder="메모" autocomplete="off">
-        <button class="btn btn-primary" style="margin:8px 0 0;" onclick="saveQuickPayment('${clientId}')">&#x1F4B3; 입금 등록</button>
+        <button class="btn btn-primary" style="margin:8px 0 0;width:100%;text-align:center;" onclick="saveQuickPayment('${clientId}')">입금 등록</button>
       </div>
     </div>`;
   history.pushState({page:'modal'},'');
@@ -2626,10 +2626,10 @@ window.showARDetail = function(clientId) {
             <button onclick="recalcClientAR('${clientId}')" style="display:none;">🔄 잔액 재계산</button>
           </div>
           <div style="margin-bottom:12px;">
-            <div class="dp-row" style="margin-bottom:8px;">
-              <input type="date" id="arFrom" value="${firstDay}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
-              <span style="color:#bbb;font-size:16px;padding-top:2px;">~</span>
-              <input type="date" id="arTo" value="${today}" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:17px;font-weight:700;" />
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;flex-wrap:nowrap;">
+              <input type="date" id="arFrom" value="${firstDay}" style="flex:1;min-width:0;padding:6px 4px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-weight:700;" />
+              <span style="color:#bbb;font-size:13px;flex-shrink:0;">~</span>
+              <input type="date" id="arTo" value="${today}" style="flex:1;min-width:0;padding:6px 4px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-weight:700;" />
             </div>
             <button onclick="renderARDetail('${clientId}')" style="width:100%;padding:8px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">조회</button>
           </div>
@@ -3355,7 +3355,7 @@ window.openPaymentEditModal = async function(saleId) {
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div style="font-size:16px;font-weight:700;margin-bottom:14px;margin-top:4px;">${p.clientName}</div>
         <div class="field-label">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">◀</button><input type="date" class="field-input" id="peDate" value="${p.date}"><button class="date-nav-btn" onclick="dateNav('peDate',1)">▶</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">−</button><input type="date" class="field-input" id="peDate" value="${p.date}"><button class="date-nav-btn" onclick="dateNav('peDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
         <div class="field-label">메모</div>
@@ -3546,7 +3546,7 @@ window.openEditSaleModal = function(id) {
           <span style="font-size:15px;font-weight:700;color:#222;">${s.clientName}</span>
         </div>
         <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:6px;">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">◀</button><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"><button class="date-nav-btn" onclick="dateNav('es_date',1)">▶</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
         ${itemsHtml}
         <button class="btn btn-primary" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
         <button class="btn btn-secondary" style="margin:4px 16px 0;" onclick="showSaleDetail('${id}')">취소</button>
