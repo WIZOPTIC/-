@@ -2135,11 +2135,13 @@ window.printPickingList = function() {
 
   // 미리보기: 페이지 사이 회색 구분선
   pickPrintDiv.innerHTML = `
-    <div id="pickPrintToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
-      <button onclick="window.closePickPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
-      <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${date}_${client.name}</span></span>
-      <button onclick="window.savePickPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
-      <button onclick="window.savePickExcel()" style="background:#217346;border:none;color:white;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📊 엑셀</button>
+    <div id="pickPrintToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;justify-content:center;padding:12px 16px;z-index:9999;">
+      <div style="width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+        <button onclick="window.closePickPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
+        <span style="font-size:13px;font-weight:700;text-align:center;">출고리스트<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${date}_${client.name}</span></span>
+        <button onclick="window.savePickPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
+        <button onclick="window.savePickExcel()" style="background:#217346;border:none;color:white;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📊 엑셀</button>
+      </div>
     </div>
     <div id="pickPrintBody" style="padding-top:60px;background:#888;display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:16px;">
       ${pages.map((pageRows, pi) => {
@@ -2364,10 +2366,12 @@ window.printStatement = function() {
   const printDiv = document.getElementById('printArea');
 
   printDiv.innerHTML = `
-    <div id="printToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;z-index:9999;">
-      <button onclick="window.closePrintPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
-      <span style="font-size:13px;font-weight:700;text-align:center;">거래명세표<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${window.stmtData.date}_${window.stmtData.client.name}</span></span>
-      <button onclick="window.saveStmtPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
+    <div id="printToolbar" style="position:fixed;top:0;left:0;right:0;background:#1D9E75;color:white;display:flex;justify-content:center;padding:12px 16px;z-index:9999;">
+      <div style="width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <button onclick="window.closePrintPreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:15px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;">← 뒤로</button>
+        <span style="font-size:13px;font-weight:700;text-align:center;">거래명세표<br><span style="font-size:11px;font-weight:400;opacity:0.9;">${window.stmtData.date}_${window.stmtData.client.name}</span></span>
+        <button onclick="window.saveStmtPDF()" style="background:white;border:none;color:#1D9E75;font-size:15px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">📥 PDF저장</button>
+      </div>
     </div>
     <div id="stmtPrintBody" style="padding-top:56px;background:white;font-family:'맑은 고딕','Malgun Gothic',Arial,sans-serif;width:100%;max-width:210mm;margin:0 auto;box-sizing:border-box;">
       ${stmtContent}
