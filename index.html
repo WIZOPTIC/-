@@ -2899,37 +2899,38 @@ window.showARDateDetail = async function(clientId, date, ids) {
 
     const modelRows = models.map(m => {
       const mc = m.total<0?'#e53935':'#1D9E75';
-      return `<tr>
-        <td style="padding:7px 8px;font-size:12px;">${m.modelNo}</td>
-        <td style="padding:7px 4px;font-size:12px;">${m.color}</td>
-        <td style="padding:7px 4px;text-align:center;font-size:12px;">${Math.abs(m.qty)}</td>
-        <td style="padding:7px 8px;text-align:right;font-size:12px;color:${mc};">${m.total<0?'-':''}${fmt(Math.abs(m.total))}</td>
-        <td style="padding:4px;text-align:center;">
-          <button onclick="event.stopPropagation();openEditSaleModal('${m.txnId}')" style="padding:4px 10px;font-size:12px;background:#1976D2;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">수정</button>
-          <button onclick="event.stopPropagation();deleteTxnFromAR('${m.txnId}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:4px 10px;font-size:12px;background:#e53935;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">삭제</button>
+      return `<tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:8px 8px;">
+          <div style="font-size:13px;font-weight:600;">${m.modelNo}</div>
+          ${m.color&&m.color!=='-'?`<div style="font-size:11px;color:#999;margin-top:1px;">${m.color}</div>`:''}
+        </td>
+        <td style="padding:8px 4px;text-align:center;font-size:13px;font-weight:700;color:#333;">${Math.abs(m.qty)}</td>
+        <td style="padding:8px 8px;text-align:right;font-size:13px;font-weight:700;color:${mc};">${m.total<0?'-':''}${fmt(Math.abs(m.total))}</td>
+        <td style="padding:6px 4px;text-align:center;white-space:nowrap;">
+          <button onclick="event.stopPropagation();openEditSaleModal('${m.txnId}')" style="padding:4px 8px;font-size:11px;background:#1976D2;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">수정</button>
+          <button onclick="event.stopPropagation();deleteTxnFromAR('${m.txnId}','${clientId}','${date}',${JSON.stringify(ids).replace(/"/g,"'")})" style="padding:4px 8px;font-size:11px;background:#e53935;color:white;border:none;border-radius:6px;cursor:pointer;margin:1px;">삭제</button>
         </td>
       </tr>`;
     }).join('');
 
     return `<div style="border:1px solid #e0e0e0;border-radius:10px;margin-bottom:8px;overflow:hidden;">
       <div onclick="toggleBrandDetail(${bi})" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#fafafa;cursor:pointer;">
-        <div>
-          <span style="font-size:14px;font-weight:700;">${b.brand}</span>
-          <span style="font-size:12px;color:#888;margin-left:8px;">${Math.abs(b.qty)}개</span>
+        <div style="display:flex;align-items:center;gap:0;min-width:0;flex:1;">
+          <span style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">${b.brand}</span>
+          <span style="font-size:13px;font-weight:700;color:#333;margin-left:10px;white-space:nowrap;flex-shrink:0;">${Math.abs(b.qty)}개</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
           <span style="font-size:14px;font-weight:700;color:${color};">${b.total<0?'-':''}${fmt(Math.abs(b.total))}</span>
           <span id="arrow-${bi}" style="font-size:12px;color:#aaa;">▼</span>
         </div>
       </div>
       <div id="brand-detail-${bi}" style="display:none;padding:4px 0;">
         <table style="width:100%;border-collapse:collapse;">
-          <tr style="background:#f5f5f5;font-size:11px;">
-            <th style="padding:6px 8px;text-align:left;">모델번호</th>
-            <th style="padding:6px 4px;text-align:left;">컬러</th>
-            <th style="padding:6px 4px;text-align:center;">수량</th>
-            <th style="padding:6px 8px;text-align:right;">금액</th>
-            <th style="padding:6px 4px;text-align:center;">수정/삭제</th>
+          <tr style="background:#f0f0f0;font-size:12px;font-weight:700;">
+            <th style="padding:7px 8px;text-align:left;color:#555;">품목</th>
+            <th style="padding:7px 4px;text-align:center;color:#555;">수량</th>
+            <th style="padding:7px 8px;text-align:right;color:#555;">금액</th>
+            <th style="padding:7px 4px;text-align:center;color:#555;">수정/삭제</th>
           </tr>
           ${modelRows}
         </table>
