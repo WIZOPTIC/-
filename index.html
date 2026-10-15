@@ -2687,6 +2687,34 @@ window.showARDetail = function(clientId) {
   renderARDetail(clientId);
 };
 
+// 원장 잔금 클릭 → 입금관리 자동 이동
+window.goPaymentFromLedger = function(clientId, balance) {
+  if(balance <= 0) return;
+  const client = window.dbClients.find(c=>c.id===clientId);
+  if(!client) return;
+  closeModalDirect();
+  showPage('payment');
+  // showPage 렌더링 후 값 세팅
+  setTimeout(function(){
+    const inp = document.getElementById('paymentClientInput');
+    const cid = document.getElementById('paymentClientId');
+    const arAmt = document.getElementById('paymentArAmt');
+    const arInfo = document.getElementById('paymentArInfo');
+    const inputArea = document.getElementById('paymentInputArea');
+    const saveBtn = document.getElementById('paymentSaveBtn');
+    const amt = document.getElementById('paymentAmt');
+    if(!inp) return;
+    inp.value = client.name;
+    if(cid) cid.value = clientId;
+    if(arAmt){ arAmt.textContent = fmt(client.ar||0); arAmt.style.color = (client.ar||0)>0?'#e53935':'#1D9E75'; }
+    if(arInfo) arInfo.style.display = 'block';
+    if(inputArea) inputArea.style.display = 'block';
+    if(saveBtn) saveBtn.style.display = 'block';
+    if(amt){ amt.value = balance; }
+    if(typeof updatePaymentPreview==='function') updatePaymentPreview();
+  }, 100);
+};
+
 // ✅ client.ar을 전체 거래내역에서 정확히 재계산하여 Firestore 동기화
 window.recalcClientAR = async function(clientId) {
   const c=window.dbClients.find(x=>x.id===clientId);
@@ -2768,14 +2796,15 @@ window.renderARDetail = async function(clientId) {
       const saleColor=netSale>0?'#1D9E75':netSale<0?'#e53935':'#bbb';
       const saleText=netSale>0?fmt(netSale):netSale<0?'-'+fmt(Math.abs(netSale)):'-';
       const idsJson=JSON.stringify(r.ids).replace(/"/g,"'");
-      return `<tr style="cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">
-        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;">
+      const balClickable = r.balance > 0;
+      return `<tr oncontextmenu="event.preventDefault();showARDateDetail('${clientId}','${r.date}',${idsJson})">
+        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">
           <div style="font-size:14px;font-weight:600;">${r.date.slice(2)}</div>
         </td>
-        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:${saleColor};">${saleText}</td>
-        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;">${r.pay>0?fmt(r.pay):'-'}</td>
-        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;" onclick="event.stopPropagation();goPaymentFromLedger('${clientId}','${r.date}',${r.balance})">
-          <span style="font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':'#e53935'};text-decoration:underline;cursor:pointer;">${r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance)}</span>
+        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:${saleColor};cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">${saleText}</td>
+        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">${r.pay>0?fmt(r.pay):'-'}</td>
+        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;${balClickable?'cursor:pointer;':''}" ${balClickable?`onclick="goPaymentFromLedger('${clientId}',${r.balance})"`:''}>
+          <span style="font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':balClickable?'#e53935':'#bbb'};">${r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance)}</span>
         </td>
       </tr>`;
     }).join('')+
