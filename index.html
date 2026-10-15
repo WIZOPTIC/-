@@ -2774,7 +2774,9 @@ window.renderARDetail = async function(clientId) {
         </td>
         <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:${saleColor};">${saleText}</td>
         <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;">${r.pay>0?fmt(r.pay):'-'}</td>
-        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':'#e53935'};">${r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance)}</td>
+        <td style="padding:8px 6px;border-bottom:1px solid #f0f0f0;text-align:center;" onclick="event.stopPropagation();goPaymentFromLedger('${clientId}','${r.date}',${r.balance})">
+          <span style="font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':'#e53935'};text-decoration:underline;cursor:pointer;">${r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance)}</span>
+        </td>
       </tr>`;
     }).join('')+
     '</table></div>';
