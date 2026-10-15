@@ -880,13 +880,17 @@ window.updateDateDisplay=function(id){
   disp.textContent=y+'. '+m+'. '+d+'.';
 };
 
+window._dateListenersAdded=false;
 window.initAllDateDisplays=function(){
   ['saleDate','stmtDate','paymentDate','pickDate','ledgerFrom','ledgerTo','statsFrom','statsTo'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     updateDateDisplay(id);
-    el.addEventListener('change',()=>{updateDateDisplay(id);});
+    if(!window._dateListenersAdded){
+      el.addEventListener('change',()=>{updateDateDisplay(id);});
+    }
   });
+  window._dateListenersAdded=true;
 };
 
 window.cart=[]; window.returnCart=[]; window.currentType='sale';
@@ -911,7 +915,8 @@ document.getElementById('statsFrom').value = firstDay;
 updateDateDisplay('statsFrom');
 document.getElementById('statsTo').value = today;
 updateDateDisplay('statsTo');
-// 날짜 표시 초기화
+// 날짜 change 이벤트 리스너 등록
+initAllDateDisplays();
 
 
 // 설정 로드
