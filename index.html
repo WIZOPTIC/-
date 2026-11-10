@@ -544,8 +544,10 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <button class="btn btn-primary" onclick="generateStatement()">📄 명세표 생성</button>
     <div id="stmtPreview" style="margin:0 12px;"></div>
     <div id="stmtActions" style="display:none;">
-      <button class="btn btn-primary" onclick="printStatement()">🖨️ 프린터 출력</button>
-      <button class="btn btn-blue" onclick="emailStatement()">✉️ 이메일 발송</button>
+      <div style="display:flex;gap:8px;margin:8px 16px;">
+        <button class="btn btn-primary" style="flex:1;margin:0;" onclick="printStatement()">🖨️ 프린터 출력</button>
+        <button class="btn btn-blue" style="flex:1;margin:0;" onclick="emailStatement()">✉️ 이메일 발송</button>
+      </div>
     </div>
   </div>
 </div>
@@ -636,8 +638,10 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <button class="btn btn-primary" onclick="generatePickingList()">📦 리스트 생성</button>
     <div id="pickPreview" style="margin:0 12px;"></div>
     <div id="pickActions" style="display:none;">
-    <button class="btn btn-primary" onclick="printPickingList()">🖨️ 인쇄 / 저장</button>
-    <button class="btn btn-blue" onclick="emailPickingList()">✉️ 이메일 발송</button>
+    <div style="display:flex;gap:8px;margin:8px 16px;">
+      <button class="btn btn-primary" style="flex:1;margin:0;" onclick="printPickingList()">🖨️ 인쇄 / 저장</button>
+      <button class="btn btn-blue" style="flex:1;margin:0;" onclick="emailPickingList()">✉️ 이메일 발송</button>
+    </div>
     </div>
   </div>
 </div>
@@ -1874,34 +1878,13 @@ window.renderLedger = async function() {
       else if(s.type==='return') byC[key].returns+=s.total;
       else if(s.type==='payment') byC[key].payments+=s.total;
     });
-    el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      Object.entries(byC).sort((a,b)=>(b[1].sales-b[1].returns)-(a[1].sales-a[1].returns)).map(([name,v],i,arr)=>{
-        const net=v.sales-v.returns;
-        const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
-        const ar=client?(client.ar||0):(net-v.payments);
-        const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
-        return `<div class="sale-item" style="cursor:pointer;${i<arr.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
-          <div class="sale-top" style="margin-bottom:8px;">
-            <span class="sale-company">${name}</span>
-            <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:6px;">
-            <div style="text-align:center;padding:10px 4px;">
-              <div style="font-size:10px;color:#888;margin-bottom:4px;">매출</div>
-              <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
-            </div>
-            <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
-              <div style="font-size:10px;color:#888;margin-bottom:4px;">입금</div>
-              <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
-            </div>
-            <div style="text-align:center;padding:10px 4px;">
-              <div style="font-size:10px;color:#888;margin-bottom:4px;">미수</div>
-              <div style="font-size:13px;font-weight:700;color:${arColor};">${fmtShort(Math.abs(ar))}</div>
-            </div>
-          </div>
-          ${v.returns>0?`<div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)} · 반품 ${fmtShort(v.returns)} &nbsp;▸ 상세</div>`:`<div style="font-size:11px;color:#aaa;">▸ 상세보기</div>`}
-        </div>`;
-      }).join('')+'</div>';
+    const byClientEntries=Object.entries(byC).sort((a,b)=>(b[1].sales-b[1].returns)-(a[1].sales-a[1].returns));
+    window._byClientEntries=byClientEntries;
+    window._byClientFromTo={from,to};
+    el.innerHTML=`<div style="margin:0 12px 10px;">`+
+      `<input type="text" id="byClientSearch" class="field-input" placeholder="🔍 업체명 검색" style="margin:0;" oninput="window.filterByClientRows(this.value)">`+
+      `</div><div id="byClientRowsWrap" style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
+      window._renderByClientRows(byClientEntries,from,to)+'</div>';
   } else if(tab==='byProduct'){
     const byP={};
     salesOnly.forEach(s=>s.items.forEach(it=>{
@@ -1955,6 +1938,47 @@ window.showClientPeriodDetail = function(clientId, clientName, from, to) {
   history.pushState({page:'modal'},'');
 };
 
+window._renderByClientRows = function(entries, from, to) {
+  if(!entries.length) return '<div style="padding:30px 14px;text-align:center;color:#bbb;font-size:13px;">검색 결과가 없습니다</div>';
+  return entries.map(([name,v],i)=>{
+    const net=v.sales-v.returns;
+    const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
+    const ar=client?(client.ar||0):(net-v.payments);
+    const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
+    return `<div class="sale-item" style="cursor:pointer;${i<entries.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
+      <div class="sale-top" style="margin-bottom:8px;">
+        <span class="sale-company">${name}</span>
+        <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:6px;">
+        <div style="text-align:center;padding:10px 4px;">
+          <div style="font-size:10px;color:#888;margin-bottom:4px;">매출</div>
+          <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
+        </div>
+        <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
+          <div style="font-size:10px;color:#888;margin-bottom:4px;">입금</div>
+          <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
+        </div>
+        <div style="text-align:center;padding:10px 4px;">
+          <div style="font-size:10px;color:#888;margin-bottom:4px;">미수</div>
+          <div style="font-size:13px;font-weight:700;color:${arColor};">${fmtShort(Math.abs(ar))}</div>
+        </div>
+      </div>
+      ${v.returns>0?`<div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)} · 반품 ${fmtShort(v.returns)} &nbsp;▸ 상세</div>`:`<div style="font-size:11px;color:#aaa;">▸ 상세보기</div>`}
+    </div>`;
+  }).join('');
+};
+
+window.filterByClientRows = function(term) {
+  const entries=window._byClientEntries||[];
+  const ft=window._byClientFromTo||{};
+  const t=(term||'').trim().toLowerCase();
+  const filtered=t?entries.filter(([name])=>name.toLowerCase().includes(t)):entries;
+  const wrap=document.getElementById('byClientRowsWrap');
+  if(!wrap) return;
+  wrap.innerHTML=window._renderByClientRows(filtered, ft.from, ft.to);
+};
+
 window.switchLedgerTab = function(el, tab) {
   window.currentLedgerTab=tab;
   document.querySelectorAll('#ledgerTabs .chip').forEach(c=>c.classList.remove('active'));
@@ -2006,8 +2030,10 @@ window.showSaleDetail = function(id) {
         </div>
         ${s.supply?`<div style="font-size:12px;color:#888;margin-bottom:12px;">공급가: ${fmt(s.supply)} / VAT: ${fmt(s.vat)}</div>`:''}
         ${s.memo?`<div style="background:#fffef0;border:1px solid #e0d88f;border-radius:8px;padding:8px 12px;font-size:13px;color:#666;margin-bottom:10px;">📝 ${s.memo}</div>`:''}
-        <button class="btn btn-blue" style="margin:0 0 8px;" onclick="openEditSaleModal('${s.id}')">✏️ 수정</button>
-        <button class="btn btn-red" style="margin:0 0 8px;" onclick="deleteSale('${s.id}')">🗑️ 삭제</button>
+        <div style="display:flex;gap:8px;margin:0 0 8px;">
+          <button class="btn btn-blue" style="flex:1;margin:0;" onclick="openEditSaleModal('${s.id}')">✏️ 수정</button>
+          <button class="btn btn-red" style="flex:1;margin:0;" onclick="deleteSale('${s.id}')">🗑️ 삭제</button>
+        </div>
         <button class="btn btn-secondary" style="margin:0;" onclick="closeModalDirect()">닫기</button>
       </div>
     </div>`;
@@ -2888,8 +2914,10 @@ window.showARTxnDetail = async function(saleId, clientId) {
     detailHtml+
     '<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:16px;font-weight:700;border-top:1px solid #f0f0f0;">'+
     '<span>합계</span><span style="color:'+(tColor[s.type||'sale'])+'">'+(s.type==='return'?'-':'')+fmt(s.total)+'</span></div>'+
-    `<button class="btn btn-red" style="margin:8px 0 4px;" onclick="deleteTxn('${saleId}','${clientId}')">🗑️ 전표 삭제</button>`+
-    `<button class="btn btn-secondary" style="margin:0;" onclick="restoreARDetail('${clientId}')">닫기</button>`+
+    `<div style="display:flex;gap:8px;margin:8px 0 4px;">`+
+    `<button class="btn btn-red" style="flex:1;margin:0;" onclick="deleteTxn('${saleId}','${clientId}')">🗑️ 삭제</button>`+
+    `<button class="btn btn-secondary" style="flex:1;margin:0;" onclick="restoreARDetail('${clientId}')">닫기</button>`+
+    `</div>`+
     '</div></div>';
 };
 
@@ -3222,8 +3250,10 @@ window.showClientDetail = async function(id) {
           <tr><td style="color:#888;padding:6px 0;">총 입금</td><td style="text-align:right;color:#1976D2;">-${fmt(pT)}</td></tr>
           <tr style="border-top:2px solid #f0f0f0;"><td style="padding:8px 0;font-weight:700;">현재 미수금</td><td style="text-align:right;font-weight:700;color:#e53935;font-size:17px;">${fmt(c.ar||0)}</td></tr>
         </table>
-        <button class="btn btn-primary" style="margin:0 0 8px;" onclick="openEditClientModal('${c.id}')">✏️ 수정</button>
-        <button class="btn btn-red" style="margin:0 0 8px;" onclick="deleteClient('${c.id}','${c.name}')">🗑️ 거래처 삭제</button>
+        <div style="display:flex;gap:8px;margin:0 0 8px;">
+          <button class="btn btn-primary" style="flex:1;margin:0;" onclick="openEditClientModal('${c.id}')">✏️ 수정</button>
+          <button class="btn btn-red" style="flex:1;margin:0;" onclick="deleteClient('${c.id}','${c.name}')">🗑️ 삭제</button>
+        </div>
         <button class="btn btn-secondary" style="margin:0;" onclick="closeModalDirect()">닫기</button>
       </div>
     </div>`;
@@ -3402,8 +3432,10 @@ window.openEditProductModal = function(id) {
           <div><div class="field-label">판매가(VAT포함)</div><input class="field-input" id="ep_price" type="number" value="${p.price||0}" /></div>
         </div>
         <div class="field-label">재고</div><input class="field-input" id="ep_stock" type="number" value="${p.stock||0}" />
-        <button class="btn btn-primary" onclick="editProduct('${id}')">저장</button>
-        <button class="btn btn-red" style="margin:4px 16px 8px;" onclick="deleteProduct('${id}','${(p.brand||p.name||'').replace(/'/g,"\\'")}')">🗑️ 상품 삭제</button>
+        <div style="display:flex;gap:8px;margin:8px 16px 8px;">
+          <button class="btn btn-primary" style="flex:1;margin:0;" onclick="editProduct('${id}')">저장</button>
+          <button class="btn btn-red" style="flex:1;margin:0;" onclick="deleteProduct('${id}','${(p.brand||p.name||'').replace(/'/g,"\\'")}')">🗑️ 삭제</button>
+        </div>
       </div>
     </div>`;
 };
@@ -3488,8 +3520,10 @@ window.openPaymentEditModal = async function(saleId) {
         <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
         <div class="field-label">메모</div>
         <input type="text" class="field-input" id="peMemo" value="${p.memo||''}" placeholder="메모">
-        <button class="btn btn-primary" onclick="savePaymentEdit('${saleId}','${p.clientId}',${p.total||0})">✅ 수정 저장</button>
-        <button class="btn btn-red" style="margin:6px 16px 0;" onclick="deletePaymentEntry('${saleId}','${p.clientId}',${p.total||0})">🗑️ 삭제</button>
+        <div style="display:flex;gap:8px;margin:6px 16px 0;">
+          <button class="btn btn-primary" style="flex:1;margin:0;" onclick="savePaymentEdit('${saleId}','${p.clientId}',${p.total||0})">✅ 수정 저장</button>
+          <button class="btn btn-red" style="flex:1;margin:0;" onclick="deletePaymentEntry('${saleId}','${p.clientId}',${p.total||0})">🗑️ 삭제</button>
+        </div>
         <button class="btn btn-secondary" style="margin:6px 16px 0;" onclick="closeModalDirect()">취소</button>
       </div>
     </div>`;
@@ -3676,8 +3710,10 @@ window.openEditSaleModal = function(id) {
         <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:6px;">날짜</div>
         <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('es_date').click()"><span class="date-display" id="es_date_display"></span><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
         ${itemsHtml}
-        <button class="btn btn-primary" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
-        <button class="btn btn-secondary" style="margin:4px 16px 0;" onclick="showSaleDetail('${id}')">취소</button>
+        <div style="display:flex;gap:8px;margin:4px 16px 0;">
+          <button class="btn btn-primary" style="flex:1;margin:0;" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
+          <button class="btn btn-secondary" style="flex:1;margin:0;" onclick="showSaleDetail('${id}')">취소</button>
+        </div>
       </div>
     </div>`;
   history.pushState({page:'modal'},'');
