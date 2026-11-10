@@ -1690,7 +1690,7 @@ window.saveSession = async function() {
     document.getElementById('saleDate').value=getKSTDate();updateDateDisplay('saleDate');
     renderCart();renderReturnCart();renderSessionSummary();
     setType('sale');
-    const newMisu=newAr<0?('-'+fmt(Math.abs(newAr))):fmt(newAr);
+    const newMisu=fmtAR(newAr);
     const parts=[];
     if(hasSale)parts.push('매출');if(hasReturn)parts.push('반품');if(payAmt>0)parts.push('입금');
     showToast(`✅ ${parts.join('+')} 저장 완료!  미수금: ${newMisu}`,'#1D9E75');
@@ -2209,7 +2209,7 @@ window.generateStatement = function() {
   const grandTotal=saleTotal-returnTotal;
   const ci=window.companyInfo||{};
   const prevAr=(client.ar||0)-grandTotal+dayPaymentTotal;
-  const janggeum=Math.max(0,prevAr)+grandTotal-dayPaymentTotal;
+  const janggeum=prevAr+grandTotal-dayPaymentTotal;
   window.stmtData={client,date,rows,grandTotal,prevAr,dayPaymentTotal,janggeum,ci,stmtNo:'WO-'+date.replace(/-/g,'') + '-' + Math.random().toString(36).substring(2,6).toUpperCase()};
 
   // 미리보기
@@ -2231,10 +2231,10 @@ window.generateStatement = function() {
           <td style="padding:8px 6px;border:1px solid #eee;text-align:right;font-weight:700;${color}">${minus}${fmt(r.total)}</td>
         </tr>`;}).join('')}
       </table>
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>전잔금</span><span>${fmt(Math.max(0,prevAr))}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>전잔금${prevAr<0?' (선입금)':''}</span><span style="${prevAr<0?'color:#1976D2;font-weight:700;':''}">${fmtAR(prevAr)}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>합계</span><span style="color:#1D9E75;font-weight:700;">${fmt(grandTotal)}</span></div>
       ${dayPaymentTotal>0?`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>입금</span><span style="color:#1976D2;font-weight:700;">${fmt(dayPaymentTotal)}</span></div>`:''}
-      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid #ddd;padding-top:8px;"><span>잔금</span><span style="color:#e53935;">${fmt(janggeum)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid #ddd;padding-top:8px;"><span>잔금${janggeum<0?' (선입금)':''}</span><span style="color:${janggeum<0?'#1976D2':'#e53935'};">${fmtAR(janggeum)}</span></div>
     </div>`;
   document.getElementById('stmtPreview').innerHTML=preview;
   document.getElementById('stmtActions').style.display='block';
@@ -2279,7 +2279,7 @@ window.printStatement = function() {
   };
 
   const makeStmt = (copyLabel, stmtNo) => {
-    const prevArAmt=Math.max(0,prevAr);
+    const prevArAmt=prevAr;
     const paymentDisplay=dayPaymentTotal>0?fmt(dayPaymentTotal):'';
     const isSupplier = copyLabel === '공급자';
     const themeColor = '#1565C0';      // 파랑 (공급자/공급받는자 동일)
@@ -2347,7 +2347,7 @@ window.printStatement = function() {
             </div>
           </td>
           <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;width:50px;color:${themeColor};">전 잔 금</td>
-          <td style="border:1px solid #333;padding:2px 5px;text-align:right;width:85px;">${fmt(prevArAmt)}</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;width:85px;${prevArAmt<0?'color:#1565C0;':''}">${fmtAR(prevArAmt)}</td>
         </tr>
         <tr style="${RH}">
           <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:600;white-space:nowrap;color:${themeColor};">합&nbsp;&nbsp;&nbsp;계</td>
@@ -2358,8 +2358,8 @@ window.printStatement = function() {
           <td style="border:1px solid #333;padding:2px 5px;text-align:right;color:#1565C0;font-weight:${dayPaymentTotal>0?'700':'400'};">${paymentDisplay}</td>
         </tr>
         <tr style="${RH}">
-          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:700;white-space:nowrap;color:#c62828;">잔&nbsp;&nbsp;&nbsp;금</td>
-          <td style="border:1px solid #333;padding:2px 5px;text-align:right;font-weight:700;color:#c62828;">${fmt(janggeum)}</td>
+          <td style="border:1px solid #333;padding:2px 5px;background:${themeBg};text-align:center;font-weight:700;white-space:nowrap;color:${janggeum<0?'#1565C0':'#c62828'};">잔&nbsp;&nbsp;&nbsp;금${janggeum<0?'(선입금)':''}</td>
+          <td style="border:1px solid #333;padding:2px 5px;text-align:right;font-weight:700;color:${janggeum<0?'#1565C0':'#c62828'};">${fmtAR(janggeum)}</td>
         </tr>
       </table>
     </div>`;
@@ -2407,7 +2407,7 @@ window.emailStatement = function() {
   if(!to){alert('거래처에 이메일이 등록되어 있지 않습니다.\n거래처 정보에서 이메일을 먼저 등록해주세요.');return;}
   let body=`[거래명세표] ${date}\n\n${client.name} 귀하\n\n`;
   rows.forEach(r=>{const {supply,vat}=calcVat(r.total);body+=`${r.brand}: ${r.qty}개 × ${fmt(r.price)} = 공급가 ${fmt(supply)} / VAT ${fmt(vat)}\n`;});
-  body+=`\n전잔금: ${fmt(Math.max(0,prevAr))}\n합계: ${fmt(grandTotal)}\n잔금: ${fmt(Math.max(0,prevAr)+grandTotal)}\n\n감사합니다.`;
+  body+=`\n전잔금: ${fmtAR(prevAr)}\n합계: ${fmt(grandTotal)}\n잔금: ${fmtAR(prevAr+grandTotal)}\n\n감사합니다.`;
   window.location.href=`mailto:${to}?subject=${encodeURIComponent('[거래명세표] '+client.name+' '+date)}&body=${encodeURIComponent(body)}`;
 };
 
@@ -2620,7 +2620,7 @@ window.renderAR = function(filter='') {
     const isZero=c.calcAR===0;
     const isMinus=c.calcAR<0;
     const amtColor=isMinus?'#1976D2':isZero?'#aaa':'#e53935';
-    const balLabel=isMinus?('-'+fmt(Math.abs(c.calcAR))):fmt(c.calcAR);
+    const balLabel=fmtAR(c.calcAR);
     const barW=isZero||isMinus?0:Math.min(100,Math.round(c.calcAR/(c.arInit||c.calcAR||1)*100));
     const statusLabel=isMinus?'💙 선입금':'✅ 완납';
     const initial=c.arInit||0;
@@ -2737,7 +2737,7 @@ window.recalcClientAR = async function(clientId) {
       else if(s.type==='payment')  bal-=s.total||0;
     });
     await updateDoc(doc(db,'clients',clientId),{ar:bal});
-    showToast(`🔄 잔액 재계산 완료: ${bal<0?'-'+fmt(Math.abs(bal)):fmt(bal)}`,'#1D9E75');
+    showToast(`🔄 잔액 재계산 완료: ${fmtAR(bal)}`,'#1D9E75');
     // 원장 새로고침
     setTimeout(()=>renderARDetail(clientId),300);
   } catch(e){showToast('오류: '+e.message,'#e53935');}
@@ -2791,7 +2791,7 @@ window.renderARDetail = async function(clientId) {
   const finalBal=running;
   document.getElementById('arDetailContent').innerHTML=
     '<div style="background:#f0faf6;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;">'+
-    '<div style="display:flex;justify-content:space-between;"><span style="font-weight:700;font-size:14px;">현재 잔액</span><span style="font-weight:700;font-size:16px;color:'+(finalBal<0?'#1976D2':'#e53935')+';">'+(finalBal<0?'-'+fmt(Math.abs(finalBal)):fmt(finalBal))+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;"><span style="font-weight:700;font-size:14px;">현재 잔액</span><span style="font-weight:700;font-size:16px;color:'+(finalBal<0?'#1976D2':'#e53935')+';">'+fmtAR(finalBal)+'</span></div>'+
     (finalBal<0?'<div style="text-align:right;font-size:11px;color:#1976D2;margin-top:2px;">💙 선입금 상태</div>':'')+
     '</div>'+
     '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'+
@@ -2810,7 +2810,7 @@ window.renderARDetail = async function(clientId) {
         <td style="padding:13px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:${saleColor};cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">${saleText}</td>
         <td style="padding:13px 6px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:13px;font-weight:600;color:#1976D2;cursor:pointer;" onclick="showARDateDetail('${clientId}','${r.date}',${idsJson})">${r.pay>0?fmt(r.pay):'-'}</td>
         <td style="padding:13px 6px;border-bottom:1px solid #f0f0f0;text-align:center;${balClickable?'cursor:pointer;':''}" ${balClickable?`onclick="goPaymentFromLedger('${clientId}',${r.balance})"`:''}>
-          <span style="font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':balClickable?'#e53935':'#bbb'};">${r.balance<0?'-'+fmt(Math.abs(r.balance)):fmt(r.balance)}</span>
+          <span style="font-size:13px;font-weight:700;color:${r.balance<0?'#1976D2':balClickable?'#e53935':'#bbb'};">${fmtAR(r.balance)}</span>
         </td>
       </tr>`;
     }).join('')+
@@ -4141,6 +4141,8 @@ window.closeModalDirect=()=>{
 window.showLoading=v=>{document.getElementById('loadingEl').style.display=v?'flex':'none';};
 window.fmt=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
 window.fmtShort=n=>{if(n>=100000000)return(n/100000000).toFixed(1)+'억';if(n>=10000000)return(n/10000000).toFixed(1)+'천만';if(n>=10000)return Math.round(n/10000)+'만원';return fmt(n);};
+// 미수금 잔액 표시: 선입금(마이너스 잔액)은 "-" 대신 "+"로 표시
+window.fmtAR=n=>n<0?('+'+fmt(Math.abs(n))):fmt(n);
 </script>
 </body>
 </html>
