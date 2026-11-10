@@ -2555,7 +2555,7 @@ window.openQuickPaymentModal = function(clientId) {
           <div style="font-size:22px;font-weight:700;color:${arColor};">${fmt(c.ar||0)}</div>
         </div>
         <div class="field-label">입금일자</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('qpDate').click()"><span class="date-display" id="qpDate_display"></span><input type="date" class="field-input" id="qpDate" value="${today}"></div><button class="date-nav-btn" onclick="dateNav('qpDate',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('qpDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('qpDate').click()"><span class="date-display" id="qpDate_display"></span><input type="date" class="field-input" id="qpDate" value="${today}" onchange="updateDateDisplay('qpDate')"></div><button class="date-nav-btn" onclick="dateNav('qpDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="qpAmt" autocomplete="off"
           value="${Math.max(0, c.ar||0)}"
@@ -2578,6 +2578,7 @@ window.openQuickPaymentModal = function(clientId) {
         <button class="btn btn-primary" style="margin:8px 0 0;width:100%;text-align:center;" onclick="saveQuickPayment('${clientId}')">입금 등록</button>
       </div>
     </div>`;
+  updateDateDisplay('qpDate');
   history.pushState({page:'modal'},'');
   setTimeout(()=>{
     const el=document.getElementById('qpAmt');
@@ -3535,7 +3536,7 @@ window.openPaymentEditModal = async function(saleId) {
         <button class="modal-close" onclick="closeModalDirect()">×</button>
         <div style="font-size:16px;font-weight:700;margin-bottom:14px;margin-top:4px;">${p.clientName}</div>
         <div class="field-label">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('peDate').click()"><span class="date-display" id="peDate_display"></span><input type="date" class="field-input" id="peDate" value="${p.date}"></div><button class="date-nav-btn" onclick="dateNav('peDate',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('peDate',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('peDate').click()"><span class="date-display" id="peDate_display"></span><input type="date" class="field-input" id="peDate" value="${p.date}" onchange="updateDateDisplay('peDate')"></div><button class="date-nav-btn" onclick="dateNav('peDate',1)">+</button></div>
         <div class="field-label">입금액</div>
         <input type="text" inputmode="numeric" class="field-input" id="peAmt" value="${p.total||0}">
         <div class="field-label">메모</div>
@@ -3547,6 +3548,7 @@ window.openPaymentEditModal = async function(saleId) {
         <button class="btn btn-secondary" style="margin:6px 16px 0;" onclick="closeModalDirect()">취소</button>
       </div>
     </div>`;
+  updateDateDisplay('peDate');
   history.pushState({page:'modal'},'');
 };
 
@@ -3728,7 +3730,7 @@ window.openEditSaleModal = function(id) {
           <span style="font-size:15px;font-weight:700;color:#222;">${s.clientName}</span>
         </div>
         <div style="font-size:13px;color:#666;font-weight:500;margin-bottom:6px;">날짜</div>
-        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('es_date').click()"><span class="date-display" id="es_date_display"></span><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;"></div><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
+        <div class="date-nav"><button class="date-nav-btn" onclick="dateNav('es_date',-1)">−</button><div class="date-nav-inner" onclick="document.getElementById('es_date').click()"><span class="date-display" id="es_date_display"></span><input type="date" class="field-input" id="es_date" value="${s.date}" style="margin-bottom:0;" onchange="updateDateDisplay('es_date')"></div><button class="date-nav-btn" onclick="dateNav('es_date',1)">+</button></div>
         ${itemsHtml}
         <div style="display:flex;gap:8px;margin:4px 16px 0;">
           <button class="btn btn-primary" style="flex:1;margin:0;" onclick="saveEditSale('${id}')">✅ 수정 저장</button>
@@ -3736,6 +3738,7 @@ window.openEditSaleModal = function(id) {
         </div>
       </div>
     </div>`;
+  updateDateDisplay('es_date');
   history.pushState({page:'modal'},'');
 };
 
