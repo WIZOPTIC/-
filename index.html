@@ -495,6 +495,9 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
       <div class="chip" onclick="switchLedgerTab(this,'byClient')">업체별</div>
       <div class="chip" onclick="switchLedgerTab(this,'byProduct')">상품별</div>
     </div>
+    <div id="ledgerSearchWrap" style="display:none;margin:0 12px 10px;">
+      <input type="text" id="ledgerSearch" class="field-input" placeholder="🔍 검색" style="margin:0;" oninput="window.renderLedger(true)">
+    </div>
     <div id="ledgerSummary" style="display:none;margin:0 12px;padding:10px 0 8px;">
       <div class="stat-grid">
         <div class="stat-card" style="text-align:right;">
@@ -1754,22 +1757,53 @@ window.clearSession = function() {
 };
 
 // 매출내역
-window.renderLedger = async function() {
+window.renderLedger = async function(skipFetch) {
   const from=document.getElementById('ledgerFrom').value;
   const to=document.getElementById('ledgerTo').value;
-  showLoading(true); await fetchSalesRange(from,to); showLoading(false);
+  if(!skipFetch){ showLoading(true); await fetchSalesRange(from,to); showLoading(false); }
   const tab=window.currentLedgerTab||'all';
   let filtered=window.dbSales.filter(s=>s.date>=from&&s.date<=to);
-  const salesOnly=filtered.filter(s=>s.type==='sale'||!s.type);
-  const returnsOnly=filtered.filter(s=>s.type==='return');
-  const grossSales=salesOnly.reduce((s,x)=>s+x.total,0);
-  const returnAmt=returnsOnly.reduce((s,x)=>s+x.total,0);
-  const netSales=grossSales-returnAmt; // ✅ 순매출 = 매출 - 반품
-  const salesCost=salesOnly.reduce((s,x)=>s+(x.cost||0),0);
-  const returnCost=returnsOnly.reduce((s,x)=>s+(x.cost||0),0);
-  const netCost=salesCost-returnCost;   // ✅ 순원가 = 원가 - 반품원가
-  const profit=netSales-netCost;
-  const rate=netSales>0?Math.round(profit/netSales*100):0;
+
+  // 검색창: 업체별/상품별 탭에서만 노출, 검색어는 통계·목록에 모두 반영
+  const searchWrap=document.getElementById('ledgerSearchWrap');
+  const searchBox=document.getElementById('ledgerSearch');
+  if(tab==='byClient'){ searchWrap.style.display='block'; searchBox.placeholder='🔍 업체명 검색'; }
+  else if(tab==='byProduct'){ searchWrap.style.display='block'; searchBox.placeholder='🔍 상품명 검색'; }
+  else { searchWrap.style.display='none'; }
+  const searchTerm=(searchBox.value||'').trim().toLowerCase();
+
+  // 검색어 반영 범위 계산 (업체별=건 단위, 상품별=품목 단위)
+  let scoped=filtered;
+  const isProductSearch = tab==='byProduct' && !!searchTerm;
+  if(tab==='byClient' && searchTerm){
+    scoped=filtered.filter(s=>(s.clientName||'').toLowerCase().includes(searchTerm));
+  }
+
+  let netSales, netCost, profit, rate;
+  if(isProductSearch){
+    let sTotal=0,sCost=0,rTotal=0,rCost=0;
+    filtered.forEach(s=>{
+      if(s.type==='payment') return;
+      const items=(s.items||[]).filter(it=>(it.brand||it.name||'').toLowerCase().includes(searchTerm));
+      if(!items.length) return;
+      const amt=items.reduce((a,it)=>a+it.qty*it.price,0);
+      const cst=items.reduce((a,it)=>a+it.qty*(it.cost||0),0);
+      if(s.type==='return'){ rTotal+=amt; rCost+=cst; } else { sTotal+=amt; sCost+=cst; }
+    });
+    netSales=sTotal-rTotal; netCost=sCost-rCost; profit=netSales-netCost;
+    rate=netSales>0?Math.round(profit/netSales*100):0;
+  } else {
+    const salesOnlyScoped=scoped.filter(s=>s.type==='sale'||!s.type);
+    const returnsOnlyScoped=scoped.filter(s=>s.type==='return');
+    const grossSales=salesOnlyScoped.reduce((s,x)=>s+x.total,0);
+    const returnAmt=returnsOnlyScoped.reduce((s,x)=>s+x.total,0);
+    netSales=grossSales-returnAmt; // ✅ 순매출 = 매출 - 반품
+    const salesCost=salesOnlyScoped.reduce((s,x)=>s+(x.cost||0),0);
+    const returnCost=returnsOnlyScoped.reduce((s,x)=>s+(x.cost||0),0);
+    netCost=salesCost-returnCost;   // ✅ 순원가 = 원가 - 반품원가
+    profit=netSales-netCost;
+    rate=netSales>0?Math.round(profit/netSales*100):0;
+  }
   // 일계표 카드 업데이트
   const today=getKSTDate();
   const todaySales=window.dbSales.filter(s=>s.date===today);
@@ -1871,7 +1905,7 @@ window.renderLedger = async function() {
       }).join('')+'</div>';
   } else if(tab==='byClient'){
     const byC={};
-    filtered.forEach(s=>{
+    scoped.forEach(s=>{
       const key=s.clientName||'(미상)';
       if(!byC[key]) byC[key]={clientId:s.clientId,sales:0,returns:0,payments:0,qty:0};
       if(s.type==='sale'||!s.type){byC[key].sales+=s.total;byC[key].qty+=(s.items||[]).reduce((a,x)=>a+x.qty,0);}
@@ -1879,32 +1913,57 @@ window.renderLedger = async function() {
       else if(s.type==='payment') byC[key].payments+=s.total;
     });
     const byClientEntries=Object.entries(byC).sort((a,b)=>(b[1].sales-b[1].returns)-(a[1].sales-a[1].returns));
-    window._byClientEntries=byClientEntries;
-    window._byClientFromTo={from,to};
-    el.innerHTML=`<div style="margin:0 12px 10px;">`+
-      `<input type="text" id="byClientSearch" class="field-input" placeholder="🔍 업체명 검색" style="margin:0;" oninput="window.filterByClientRows(this.value)">`+
-      `</div><div id="byClientRowsWrap" style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      window._renderByClientRows(byClientEntries,from,to)+'</div>';
+    el.innerHTML=byClientEntries.length?(`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
+      byClientEntries.map(([name,v],i)=>{
+        const net=v.sales-v.returns;
+        const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
+        const ar=client?(client.ar||0):(net-v.payments);
+        const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
+        return `<div class="sale-item" style="cursor:pointer;${i<byClientEntries.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
+          <div class="sale-top" style="margin-bottom:8px;">
+            <span class="sale-company">${name}</span>
+            <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:6px;">
+            <div style="text-align:center;padding:10px 4px;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">매출</div>
+              <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
+            </div>
+            <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">입금</div>
+              <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
+            </div>
+            <div style="text-align:center;padding:10px 4px;">
+              <div style="font-size:10px;color:#888;margin-bottom:4px;">미수</div>
+              <div style="font-size:13px;font-weight:700;color:${arColor};">${fmtShort(Math.abs(ar))}</div>
+            </div>
+          </div>
+          ${v.returns>0?`<div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)} · 반품 ${fmtShort(v.returns)} &nbsp;▸ 상세</div>`:`<div style="font-size:11px;color:#aaa;">▸ 상세보기</div>`}
+        </div>`;
+      }).join('')+'</div>'):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">검색 결과가 없습니다</div></div>';
   } else if(tab==='byProduct'){
     const byP={};
-    salesOnly.forEach(s=>s.items.forEach(it=>{
+    filtered.filter(s=>s.type==='sale'||!s.type).forEach(s=>(s.items||[]).forEach(it=>{
       const k=it.brand||it.name;
+      if(searchTerm && !(k||'').toLowerCase().includes(searchTerm)) return;
       if(!byP[k])byP[k]={qty:0,total:0};
       byP[k].qty+=it.qty;
       byP[k].total+=it.qty*it.price;
     }));
-    returnsOnly.forEach(s=>s.items.forEach(it=>{
+    filtered.filter(s=>s.type==='return').forEach(s=>(s.items||[]).forEach(it=>{
       const k=it.brand||it.name;
+      if(searchTerm && !(k||'').toLowerCase().includes(searchTerm)) return;
       if(!byP[k])byP[k]={qty:0,total:0};
       byP[k].qty-=it.qty;
       byP[k].total-=it.qty*it.price;
     }));
-    el.innerHTML=`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
-      Object.entries(byP).filter(([,v])=>v.qty!==0||v.total!==0).sort((a,b)=>b[1].total-a[1].total).map(([name,v])=>`
+    const byProductEntries=Object.entries(byP).filter(([,v])=>v.qty!==0||v.total!==0).sort((a,b)=>b[1].total-a[1].total);
+    el.innerHTML=byProductEntries.length?(`<div style="border-radius:12px;overflow:hidden;margin:0 12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">`+
+      byProductEntries.map(([name,v])=>`
       <div class="sale-item">
         <div class="sale-top"><span class="sale-company">${name}</span><span class="sale-amount" style="color:${v.total>=0?'#1D9E75':'#e53935'};">${v.total<0?'-':''}${fmt(Math.abs(v.total))}</span></div>
         <div class="sale-bottom"><span class="sale-meta">총 ${v.qty}개 판매</span></div>
-      </div>`).join('')+'</div>';
+      </div>`).join('')+'</div>'):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">검색 결과가 없습니다</div></div>';
   }
 };
 
@@ -1938,51 +1997,12 @@ window.showClientPeriodDetail = function(clientId, clientName, from, to) {
   history.pushState({page:'modal'},'');
 };
 
-window._renderByClientRows = function(entries, from, to) {
-  if(!entries.length) return '<div style="padding:30px 14px;text-align:center;color:#bbb;font-size:13px;">검색 결과가 없습니다</div>';
-  return entries.map(([name,v],i)=>{
-    const net=v.sales-v.returns;
-    const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
-    const ar=client?(client.ar||0):(net-v.payments);
-    const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
-    return `<div class="sale-item" style="cursor:pointer;${i<entries.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
-      <div class="sale-top" style="margin-bottom:8px;">
-        <span class="sale-company">${name}</span>
-        <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#f8f9fb;border-radius:10px;overflow:hidden;margin-bottom:6px;">
-        <div style="text-align:center;padding:10px 4px;">
-          <div style="font-size:10px;color:#888;margin-bottom:4px;">매출</div>
-          <div style="font-size:13px;font-weight:700;color:#1D9E75;">${fmtShort(net)}</div>
-        </div>
-        <div style="text-align:center;padding:10px 4px;border-left:1px solid #eee;border-right:1px solid #eee;">
-          <div style="font-size:10px;color:#888;margin-bottom:4px;">입금</div>
-          <div style="font-size:13px;font-weight:700;color:#1976D2;">${fmtShort(v.payments)}</div>
-        </div>
-        <div style="text-align:center;padding:10px 4px;">
-          <div style="font-size:10px;color:#888;margin-bottom:4px;">미수</div>
-          <div style="font-size:13px;font-weight:700;color:${arColor};">${fmtShort(Math.abs(ar))}</div>
-        </div>
-      </div>
-      ${v.returns>0?`<div style="font-size:11px;color:#aaa;">매출 ${fmtShort(v.sales)} · 반품 ${fmtShort(v.returns)} &nbsp;▸ 상세</div>`:`<div style="font-size:11px;color:#aaa;">▸ 상세보기</div>`}
-    </div>`;
-  }).join('');
-};
-
-window.filterByClientRows = function(term) {
-  const entries=window._byClientEntries||[];
-  const ft=window._byClientFromTo||{};
-  const t=(term||'').trim().toLowerCase();
-  const filtered=t?entries.filter(([name])=>name.toLowerCase().includes(t)):entries;
-  const wrap=document.getElementById('byClientRowsWrap');
-  if(!wrap) return;
-  wrap.innerHTML=window._renderByClientRows(filtered, ft.from, ft.to);
-};
-
 window.switchLedgerTab = function(el, tab) {
   window.currentLedgerTab=tab;
   document.querySelectorAll('#ledgerTabs .chip').forEach(c=>c.classList.remove('active'));
   if(el) el.classList.add('active');
+  const searchBox=document.getElementById('ledgerSearch');
+  if(searchBox) searchBox.value='';
   renderLedger();
 };
 
