@@ -471,34 +471,35 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
     <div id="ledgerSearchWrap" style="display:none;margin:0 12px 10px;">
       <input type="text" id="ledgerSearch" class="field-input" placeholder="🔍 검색" style="margin:0;" oninput="window.renderLedger(true)">
     </div>
-    <div id="ledgerSummary" style="display:none;margin:0 12px;padding:10px 0 8px;">
-      <div class="stat-grid">
-        <div class="stat-card" style="text-align:right;">
-          <div class="stat-label">매출</div>
-          <div class="stat-value green" id="sumSales">₩0</div>
+    <div id="ledgerSummary" style="display:none;margin:0 12px 14px;background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;">
+      <div style="background:#1D9E75;color:white;padding:9px 14px;font-size:13px;font-weight:700;letter-spacing:0.5px;">기간 매출 요약</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #f0f0f0;">
+        <div style="padding:12px 14px;text-align:right;border-right:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">매출</div>
+          <div style="font-size:18px;font-weight:700;color:#1D9E75;" id="sumSales">₩0</div>
         </div>
-        <div class="stat-card" style="text-align:right;">
-          <div class="stat-label">원가</div>
-          <div class="stat-value red" id="sumCost">₩0</div>
+        <div style="padding:12px 14px;text-align:right;border-bottom:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">원가</div>
+          <div style="font-size:18px;font-weight:700;color:#e53935;" id="sumCost">₩0</div>
         </div>
-        <div class="stat-card" style="text-align:right;">
-          <div class="stat-label">매출이익</div>
-          <div class="stat-value blue" id="sumProfit">₩0</div>
+        <div style="padding:12px 14px;text-align:right;border-right:1px solid #f0f0f0;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">매출이익</div>
+          <div style="font-size:18px;font-weight:700;color:#1976D2;" id="sumProfit">₩0</div>
         </div>
-        <div class="stat-card" style="text-align:right;">
-          <div class="stat-label">이익률</div>
-          <div class="stat-value blue" id="sumRate">0%</div>
+        <div style="padding:12px 14px;text-align:right;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">이익률</div>
+          <div style="font-size:18px;font-weight:700;color:#1976D2;" id="sumRate">0%</div>
         </div>
       </div>
     </div>
-    <div style="margin:4px 12px 14px;background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:14px;">
+    <div style="margin:0 12px 14px;background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:14px;">
       <div style="font-size:12px;color:#888;font-weight:600;margin-bottom:8px;">조회 기간</div>
       <div class="date-wrap" style="padding:0 0 10px;">
         <input type="date" id="ledgerFrom" />
         <span style="line-height:44px;color:#888;">~</span>
         <input type="date" id="ledgerTo" />
       </div>
-      <button style="width:100%;padding:11px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;" onclick="renderLedger()">조회</button>
+      <button style="width:100%;padding:11px;background:white;color:#1D9E75;border:1.5px solid #1D9E75;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" onclick="renderLedger()">조회</button>
     </div>
     <!-- 일계표 카드 -->
     <div id="dailySummaryCard" style="display:none;margin:10px 12px;background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;">
@@ -1870,7 +1871,7 @@ window.renderLedger = async function(skipFetch) {
 
   const sumEl=document.getElementById('ledgerSummary');
   if(filtered.length){
-    sumEl.style.display='grid';
+    sumEl.style.display='block';
     document.getElementById('sumSales').textContent=fmtShort(netSales);
     document.getElementById('sumCost').textContent=fmtShort(netCost);
     document.getElementById('sumProfit').textContent=fmtShort(profit);
