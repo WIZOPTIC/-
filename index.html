@@ -1118,7 +1118,9 @@ window.addEventListener('popstate',function(e){
     showHome();
     return;
   }
-  // 홈에서 뒤로가기 → 그냥 브라우저 동작
+  // ✅ 홈 화면에서 뒤로가기: 그냥 두면 쌓아둔 기록이 바닥나서 앱이 통째로 종료될 수 있음
+  // → 항상 홈 상태를 다시 쌓아서 뒤로가기로는 절대 앱이 꺼지지 않게 함
+  history.pushState({page:'home'},'');
 });
 
 // 거래처 드롭다운
@@ -2734,7 +2736,7 @@ window.renderAR = function(filter='') {
     const segBar = Array.from({length:12},(_,i)=>
       `<div style="flex:1;height:3px;border-radius:2px;background:${i<elapsedMonths?'#1D9E75':'#f0f0f0'};"></div>`
     ).join('');
-    return `<div class="ar-item" onclick="showARDetail('${c.id}')" ontouchstart="startArLongPress(event,'${c.id}')" ontouchend="cancelArLongPress(event)" ontouchmove="cancelArLongPress(event)">`+
+    return `<div class="ar-item" onclick="window._arScrollY=window.scrollY||document.documentElement.scrollTop||0;showARDetail('${c.id}')" ontouchstart="startArLongPress(event,'${c.id}')" ontouchend="cancelArLongPress(event)" ontouchmove="cancelArLongPress(event)">`+
     '<div class="ar-top">'+
       '<div>'+
         '<div class="ar-company">'+c.name+'</div>'+
@@ -2763,12 +2765,12 @@ window.showARDetail = function(clientId) {
   const today=getKSTDate();
   const firstDay=new Date().getFullYear()+'-01-01'; // ✅ 당해년도 1월 1일
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-overlay" onclick="closeARDetailModal(event)">
       <div class="modal" style="max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
         <div style="padding:14px 16px 0;flex-shrink:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
             <div class="modal-title" style="margin:0;">${c.name} 원장</div>
-            <button onclick="closeModalDirect()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f0f0f0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555;flex-shrink:0;">×</button>
+            <button onclick="closeARDetailModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f0f0f0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555;flex-shrink:0;">×</button>
           </div>
           <div style="margin-bottom:12px;">
             <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;flex-wrap:nowrap;">
@@ -4229,6 +4231,12 @@ window.closeModal=e=>{if(e.target.classList.contains('modal-overlay'))closeModal
 window.closeModalDirect=()=>{
   const m=document.getElementById('modalArea');
   if(m){m.innerHTML='';m.style.display='none';m.offsetHeight;m.style.display='';}
+};
+// ✅ 미수금 원장 모달 닫기: 거래처 목록 스크롤 위치를 정확히 복원
+window.closeARDetailModal=(e)=>{
+  if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
+  closeModalDirect();
+  setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50);
 };
 window.showLoading=v=>{document.getElementById('loadingEl').style.display=v?'flex':'none';};
 window.fmt=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
