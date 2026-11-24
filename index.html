@@ -1101,14 +1101,19 @@ window.showPage = function(name) {
   }
   history.pushState({page:name},'');
 };
+// ✅ 기록을 넉넉히 쌓아둬서 뒤로가기를 여러 번 눌러도 앱이 통째로 종료되지 않게 여유분 확보
 history.replaceState({page:'home'},'');
+history.pushState({page:'home'},'');
+history.pushState({page:'home'},'');
 history.pushState({page:'home'},'');
 window.addEventListener('popstate',function(e){
   const m=document.getElementById('modalArea');
   // 모달 열려있으면 닫기
   if(m&&m.innerHTML.trim()){
-    closeModalDirect();
     const ap=document.querySelector('[id^="page-"][style*="flex"]');
+    const wasAR = ap && ap.id==='page-ar';
+    closeModalDirect();
+    if(wasAR) setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50); // ✅ 휴대폰 뒤로가기로 원장 닫을 때도 거래처 목록 스크롤 위치 유지
     history.pushState({page:ap?ap.id.replace('page-',''):'home'},'');
     return;
   }
