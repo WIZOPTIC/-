@@ -821,6 +821,11 @@ input[type="date"].field-input{color:#222;-webkit-text-fill-color:#222;font-size
       if(overlay) overlay.scrollTop=0;
       var modal=modalArea.querySelector('.modal');
       if(modal) modal.scrollTop=0;
+      // ✅ 모달이 열릴 때 history에 딱 1개만 기록 (뒤로가기 과다 사용으로 인한 브라우저 제한 방지)
+      if(!window._modalPushed){
+        history.pushState({modal:true},'');
+        window._modalPushed=true;
+      }
     } else {
       // 모달이 닫힘: 배경 스크롤 원위치
       document.body.style.position='';
@@ -1041,10 +1046,8 @@ window.showHome = function() {
   document.getElementById('home').style.flexDirection='column';
   if(typeof clearSession==='function') clearSession();
   const m=document.getElementById('modalArea');
-  if(m&&m.innerHTML.trim()) m.innerHTML='';
+  if(m&&m.innerHTML.trim()){ window._modalPushed=false; m.innerHTML=''; }
   history.replaceState({page:'home'},'');
-  history.pushState({page:'home'},'');
-  
 };
 window.showPage = function(name) {
   document.getElementById('home').style.display='none';
@@ -1101,36 +1104,29 @@ window.showPage = function(name) {
   }
   history.pushState({page:name},'');
 };
-// ✅ 기록을 넉넉히 쌓아둬서 뒤로가기를 여러 번 눌러도 앱이 통째로 종료되지 않게 여유분 확보
+// ✅ history는 "실제 탐색 동작 1번당 기록 1개"만 쌓음 (과도한 pushState는 브라우저 자체 제한에 걸려
+//    오히려 기록이 조용히 누락되고, 그게 쌓이면 뒤로가기 몇 번만에 앱이 통째로 꺼지는 원인이 됨)
 history.replaceState({page:'home'},'');
-history.pushState({page:'home'},'');
-history.pushState({page:'home'},'');
-history.pushState({page:'home'},'');
 window.addEventListener('popstate',function(e){
+  // ✅ X버튼 등으로 이미 JS에서 직접 닫은 경우: history만 맞춰주기 위한 호출이므로 중복 처리 방지
+  if(window._suppressNextPopstate){ window._suppressNextPopstate=false; return; }
   const m=document.getElementById('modalArea');
-  // 모달 열려있으면 닫기
+  // 모달 열려있으면 닫기 (모달에 대응하는 history 기록은 이미 소비됐으므로 추가 조작 없음)
   if(m&&m.innerHTML.trim()){
     const ap=document.querySelector('[id^="page-"][style*="flex"]');
     const wasAR = ap && ap.id==='page-ar';
-    closeModalDirect();
+    window._modalPushed=false;
+    closeModalDOMOnly();
     if(wasAR) setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50); // ✅ 휴대폰 뒤로가기로 원장 닫을 때도 거래처 목록 스크롤 위치 유지
-    // ✅ 여러 거래처를 연속으로 들어갔다 나왔다 해도 기록이 바닥나지 않도록 넉넉하게 2번 쌓아둠
-    const pageState={page:ap?ap.id.replace('page-',''):'home'};
-    history.pushState(pageState,'');
-    history.pushState(pageState,'');
     return;
   }
-  // 하위 페이지에 있으면 홈으로
+  // 하위 페이지에 있으면 홈으로 (해당 페이지의 history 기록은 이미 소비됐으므로 추가 조작 없음)
   const active=document.querySelector('[id^="page-"][style*="flex"]');
   if(active){
     showHome();
-    history.pushState({page:'home'},''); // ✅ 여유분 추가 확보
     return;
   }
-  // ✅ 홈 화면에서 뒤로가기: 그냥 두면 쌓아둔 기록이 바닥나서 앱이 통째로 종료될 수 있음
-  // → 항상 홈 상태를 넉넉하게(2개) 다시 쌓아서 뒤로가기로는 절대 앱이 꺼지지 않게 함
-  history.pushState({page:'home'},'');
-  history.pushState({page:'home'},'');
+  // 홈 화면에서 뒤로가기: 더 갈 기록이 없다는 뜻 → 정상적인 기본 동작에 맡김 (인위적인 기록 추가 없음)
 });
 
 // 거래처 드롭다운
@@ -2008,7 +2004,6 @@ window.showClientPeriodDetail = function(clientId, clientName, from, to) {
         :'<div style="text-align:center;padding:24px;color:#bbb;">거래 내역 없음</div>'}
       </div>
     </div>`;
-  history.pushState({page:'modal'},'');
 };
 
 window.switchLedgerTab = function(el, tab) {
@@ -2593,7 +2588,6 @@ window.openQuickPaymentModal = function(clientId) {
       </div>
     </div>`;
   updateDateDisplay('qpDate');
-  history.pushState({page:'modal'},'');
   setTimeout(()=>{
     const el=document.getElementById('qpAmt');
     if(el){ el.focus(); el.select(); }
@@ -3563,7 +3557,6 @@ window.openPaymentEditModal = async function(saleId) {
       </div>
     </div>`;
   updateDateDisplay('peDate');
-  history.pushState({page:'modal'},'');
 };
 
 window.savePaymentEdit = async function(saleId, clientId, oldAmt) {
@@ -3753,7 +3746,6 @@ window.openEditSaleModal = function(id) {
       </div>
     </div>`;
   updateDateDisplay('es_date');
-  history.pushState({page:'modal'},'');
 };
 
 window.esDeleteItem = function(i) {
@@ -4238,15 +4230,26 @@ window.showToast = function(msg, color='#1D9E75') {
 };
 
 window.closeModal=e=>{if(e.target.classList.contains('modal-overlay'))closeModalDirect();};
-window.closeModalDirect=()=>{
+// DOM만 정리 (history 조작 없음) - popstate 핸들러가 직접 호출
+function closeModalDOMOnly(){
   const m=document.getElementById('modalArea');
   if(m){m.innerHTML='';m.style.display='none';m.offsetHeight;m.style.display='';}
+}
+// ✅ 모달 닫기(X버튼/바깥클릭 등): 화면은 즉시 정리하고, 열 때 쌓아둔 history 기록이 있으면
+//    history.back()으로 정확히 소비시켜서 history가 어긋나지 않게 함 (뒤이은 popstate는 중복 처리 방지)
+window.closeModalDirect=()=>{
+  closeModalDOMOnly();
+  if(window._modalPushed){
+    window._modalPushed=false;
+    window._suppressNextPopstate=true;
+    history.back();
+  }
 };
 // ✅ 미수금 원장 모달 닫기: 거래처 목록 스크롤 위치를 정확히 복원
 window.closeARDetailModal=(e)=>{
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
   closeModalDirect();
-  setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50);
+  setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 80);
 };
 window.showLoading=v=>{document.getElementById('loadingEl').style.display=v?'flex':'none';};
 window.fmt=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
