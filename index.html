@@ -1114,17 +1114,22 @@ window.addEventListener('popstate',function(e){
     const wasAR = ap && ap.id==='page-ar';
     closeModalDirect();
     if(wasAR) setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50); // ✅ 휴대폰 뒤로가기로 원장 닫을 때도 거래처 목록 스크롤 위치 유지
-    history.pushState({page:ap?ap.id.replace('page-',''):'home'},'');
+    // ✅ 여러 거래처를 연속으로 들어갔다 나왔다 해도 기록이 바닥나지 않도록 넉넉하게 2번 쌓아둠
+    const pageState={page:ap?ap.id.replace('page-',''):'home'};
+    history.pushState(pageState,'');
+    history.pushState(pageState,'');
     return;
   }
   // 하위 페이지에 있으면 홈으로
   const active=document.querySelector('[id^="page-"][style*="flex"]');
   if(active){
     showHome();
+    history.pushState({page:'home'},''); // ✅ 여유분 추가 확보
     return;
   }
   // ✅ 홈 화면에서 뒤로가기: 그냥 두면 쌓아둔 기록이 바닥나서 앱이 통째로 종료될 수 있음
-  // → 항상 홈 상태를 다시 쌓아서 뒤로가기로는 절대 앱이 꺼지지 않게 함
+  // → 항상 홈 상태를 넉넉하게(2개) 다시 쌓아서 뒤로가기로는 절대 앱이 꺼지지 않게 함
+  history.pushState({page:'home'},'');
   history.pushState({page:'home'},'');
 });
 
