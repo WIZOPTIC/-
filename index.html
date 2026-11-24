@@ -1040,7 +1040,15 @@ window.calcVat = function(totalAmt) {
 };
 
 // 페이지 전환
+// ✅ 미수금 목록 화면을 떠날 때 스크롤 위치 저장 (다른 메뉴 갔다가 다시 미수금으로 돌아와도 위치 복원용)
+function saveARListScrollIfLeaving(){
+  const prevActive=document.querySelector('[id^="page-"][style*="flex"]');
+  if(prevActive && prevActive.id==='page-ar'){
+    window._arPageScrollY = window.scrollY||document.documentElement.scrollTop||0;
+  }
+}
 window.showHome = function() {
+  saveARListScrollIfLeaving();
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.style.display='none');
   document.getElementById('home').style.display='flex';
   document.getElementById('home').style.flexDirection='column';
@@ -1050,6 +1058,7 @@ window.showHome = function() {
   history.replaceState({page:'home'},'');
 };
 window.showPage = function(name) {
+  if(name!=='ar') saveARListScrollIfLeaving();
   document.getElementById('home').style.display='none';
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.style.display='none');
   document.getElementById('page-'+name).style.display='flex';
@@ -1075,7 +1084,14 @@ window.showPage = function(name) {
   }
   if(name==='clients') renderClients();
   if(name==='products') renderProducts();
-  if(name==='ar'){ window.arPaymentMap=null; window.loadARPaymentMap().then(()=>renderAR()); }
+  if(name==='ar'){
+    window.arPaymentMap=null;
+    window.loadARPaymentMap().then(()=>{
+      renderAR();
+      // ✅ 다른 메뉴 갔다가 다시 미수금으로 돌아온 경우, 떠나기 전 스크롤 위치로 복원
+      if(window._arPageScrollY) setTimeout(()=>window.scrollTo(0, window._arPageScrollY), 60);
+    });
+  }
   if(name==='payment'){
     document.getElementById('paymentDate').value=td;updateDateDisplay('paymentDate');
     document.getElementById('paymentClientInput').value='';
@@ -1114,10 +1130,11 @@ window.addEventListener('popstate',function(e){
   // 모달 열려있으면 닫기 (모달에 대응하는 history 기록은 이미 소비됐으므로 추가 조작 없음)
   if(m&&m.innerHTML.trim()){
     const ap=document.querySelector('[id^="page-"][style*="flex"]');
-    const wasAR = ap && ap.id==='page-ar';
     window._modalPushed=false;
     closeModalDOMOnly();
-    if(wasAR) setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50); // ✅ 휴대폰 뒤로가기로 원장 닫을 때도 거래처 목록 스크롤 위치 유지
+    // ✅ 휴대폰 뒤로가기로 상세 모달 닫을 때도 목록 스크롤 위치 유지 (미수금 원장 / 매출내역 상세 공통)
+    if(ap && ap.id==='page-ar') setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 50);
+    else if(ap && ap.id==='page-ledger') setTimeout(()=>window.scrollTo(0, window._ledgerScrollY||0), 50);
     return;
   }
   // 하위 페이지에 있으면 홈으로 (해당 페이지의 history 기록은 이미 소비됐으므로 추가 조작 없음)
@@ -1906,7 +1923,7 @@ window.renderLedger = async function(skipFetch) {
         const netColor=net>=0?'#1D9E75':'#e53935';
         const netTxt=`${net<0?'−':''}${fmt(Math.abs(net))}`;
         return `<div style="display:flex;align-items:center;padding:13px 16px;${i<rows.length-1?'border-bottom:1px solid #f5f5f5;':''}gap:8px;cursor:pointer;"
-          onclick="showClientPeriodDetail('${v.clientId}','${v.clientName.replace(/'/g,"\\'")}','${v.date}','${v.date}')">
+          onclick="window._ledgerScrollY=window.scrollY||document.documentElement.scrollTop||0;showClientPeriodDetail('${v.clientId}','${v.clientName.replace(/'/g,"\\'")}','${v.date}','${v.date}')">
           <span style="font-size:14px;font-weight:800;color:#1D9E75;flex-shrink:0;min-width:36px;">${v.date.slice(5)}</span>
           <span style="flex:1;font-size:14px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.clientName}</span>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -1929,7 +1946,7 @@ window.renderLedger = async function(skipFetch) {
         const client=window.dbClients.find(c=>c.id===v.clientId||c.name===name);
         const ar=client?(client.ar||0):(net-v.payments);
         const arColor=ar>0?'#e53935':ar<0?'#1976D2':'#1D9E75';
-        return `<div class="sale-item" style="cursor:pointer;${i<byClientEntries.length-1?'':'border-bottom:none;'}" onclick="showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
+        return `<div class="sale-item" style="cursor:pointer;${i<byClientEntries.length-1?'':'border-bottom:none;'}" onclick="window._ledgerScrollY=window.scrollY||document.documentElement.scrollTop||0;showClientPeriodDetail('${v.clientId}','${name.replace(/'/g,"\\'")}','${from}','${to}')">
           <div class="sale-top" style="margin-bottom:8px;">
             <span class="sale-company">${name}</span>
             <span style="font-size:11px;color:#aaa;">${v.qty}개</span>
@@ -1983,9 +2000,9 @@ window.showClientPeriodDetail = function(clientId, clientName, from, to) {
   const tColor={sale:'#1D9E75',payment:'#1976D2',return:'#e53935'};
   const tLabel={sale:'매출',payment:'입금',return:'반품'};
   document.getElementById('modalArea').innerHTML=`
-    <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-overlay" onclick="closeLedgerDetailModal(event)">
       <div class="modal" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto;">
-        <button class="modal-close" onclick="closeModalDirect()">×</button>
+        <button class="modal-close" onclick="closeLedgerDetailModal()">×</button>
         <div style="font-size:17px;font-weight:700;margin-bottom:4px;">${clientName}</div>
         <div style="font-size:12px;color:#aaa;margin-bottom:14px;">${from} ~ ${to}</div>
         ${txs.length?txs.map((s,i)=>{
@@ -4250,6 +4267,12 @@ window.closeARDetailModal=(e)=>{
   if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
   closeModalDirect();
   setTimeout(()=>window.scrollTo(0, window._arScrollY||0), 80);
+};
+// ✅ 매출내역(일자별/업체별) 상세 모달 닫기: 목록 스크롤 위치를 정확히 복원
+window.closeLedgerDetailModal=(e)=>{
+  if(e && e.target && !e.target.classList.contains('modal-overlay')) return;
+  closeModalDirect();
+  setTimeout(()=>window.scrollTo(0, window._ledgerScrollY||0), 80);
 };
 window.showLoading=v=>{document.getElementById('loadingEl').style.display=v?'flex':'none';};
 window.fmt=n=>'₩'+Math.round(n).toLocaleString('ko-KR');
